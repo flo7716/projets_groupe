@@ -35,3 +35,5 @@ posts = scrape_post("https://www.instagram.com/p/CuE2WNQs6vH/")
 # save a JSON file
 with open("result.json", "w",encoding="utf-8") as f:
     json.dump(posts, f, indent=2, ensure_ascii=False)
+
+
