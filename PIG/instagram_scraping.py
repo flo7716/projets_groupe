@@ -38,5 +38,3 @@ with open("result.json", "w",encoding="utf-8") as f:
 
 
 
-
-#prouuuuuutttttttttttttttttttt
