@@ -14,5 +14,6 @@
             "username": "florian",
             "askForPassword": true
         }
-    ]
+    ],
+    "ansible.python.interpreterPath": "/home/florian/anaconda3/envs/ansible_env/bin/python"
 }
