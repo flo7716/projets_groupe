@@ -1,19 +1,4 @@
 {
-    "sqltools.connections": [
-        {
-            "mysqlOptions": {
-                "authProtocol": "default",
-                "enableSsl": "Disabled"
-            },
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "EvenementsAssosPig",
-            "database": "assos_events",
-            "username": "florian",
-            "askForPassword": true
-        }
-    ],
+    "sqltools.connections": [],
     "ansible.python.interpreterPath": "/home/florian/anaconda3/envs/ansible_env/bin/python"
 }
