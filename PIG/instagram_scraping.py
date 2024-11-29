@@ -2,6 +2,7 @@ import httpx
 import json
 from typing import Dict
 from urllib.parse import quote
+import mysql.connector
 from mysql.connector import connect, Error
 import datetime
 
@@ -9,16 +10,18 @@ INSTAGRAM_DOCUMENT_ID = "8845758582119845"  # Instagram post document ID
 
 
 def connect_to_db():
-    """Connect to the MySQL database."""
+    """Connect to the MySQL database using auth_socket."""
     try:
-        connection = connect(
-            host="your_host",
-            user="your_user",
-            password="your_password",
-            database="school_events"
+        # Connexion à MySQL en utilisant le socket UNIX
+        connection = mysql.connector.connect(
+            unix_socket='/var/run/mysqld/mysqld.sock',  # Chemin du socket UNIX
+            user='your_user',  # L'utilisateur créé avec auth_socket
+            database='school_events'
         )
+        
+        # Vérifier la connexion
         if connection.is_connected():
-            print("Connecté à la base de données")
+            print("Connecté à la base de données via auth_socket")
         return connection
     except Error as e:
         print(f"Erreur lors de la connexion à la base de données : {e}")
