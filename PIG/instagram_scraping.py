@@ -15,8 +15,8 @@ def connect_to_db():
         # Connexion à MySQL en utilisant le socket UNIX
         connection = mysql.connector.connect(
             unix_socket='/var/run/mysqld/mysqld.sock',  # Chemin du socket UNIX
-            user='your_user',  # L'utilisateur créé avec auth_socket
-            database='school_events'
+            user='scraper'@'localhost',  # L'utilisateur créé avec auth_socket
+            database='pig'
         )
         
         # Vérifier la connexion
