@@ -11,7 +11,7 @@
             "driver": "MySQL",
             "name": "florian",
             "database": "pig",
-            "username": "florian"
+            "username": "admin"
         }
     ],
     "ansible.python.interpreterPath": "/home/florian/anaconda3/envs/ansible_env/bin/python"
