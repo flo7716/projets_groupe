@@ -5,17 +5,18 @@ from urllib.parse import quote
 import mysql.connector
 from mysql.connector import connect, Error
 import datetime
+from dotenv import load_dotenv
 
 INSTAGRAM_DOCUMENT_ID = "8845758582119845"  # Instagram post document ID
 
 
 def connect_to_db():
-    """Connect to the MySQL database using auth_socket."""
+    """Connect to the MySQL database using instagram scraper account"""
     try:
-        # Connexion à MySQL en utilisant le socket UNIX
+        # Connexion à MySQL 
         connection = mysql.connector.connect(
-            unix_socket='/var/run/mysqld/mysqld.sock',  # Chemin du socket UNIX
-            user='scraper'@'localhost',  # L'utilisateur créé avec auth_socket
+            user='instagram_scraper'@'localhost',
+            password='instagram_scraper',
             database='pig'
         )
         
