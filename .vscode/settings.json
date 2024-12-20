@@ -14,5 +14,5 @@
             "username": "admin"
         }
     ],
-    "ansible.python.interpreterPath": "/home/florian/anaconda3/envs/ansible_env/bin/python"
+    "ansible.python.interpreterPath": "/home/florian-andr/anaconda3/envs/ansible_florian/bin/python"
 }
