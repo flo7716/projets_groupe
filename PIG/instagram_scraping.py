@@ -1,6 +1,9 @@
 import instaloader
 import mysql.connector
 from mysql.connector import connect, Error
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 def connect_to_db():
     """Connexion à la base de données MySQL."""
