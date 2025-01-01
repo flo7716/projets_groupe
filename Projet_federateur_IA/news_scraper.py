@@ -24,7 +24,7 @@ def scrape_news():
         print(f"Failed to scrape news. Status code: {response.status_code}")
 
 def save_to_database(news_data):
-    connection = pymysql.connect(host='localhost', user='root', password='password', database='news_db')
+    connection = pymysql.connect(host='127.0.0.1', user='root', password='password', database='news_db')
     cursor = connection.cursor()
 
     for news in news_data:
