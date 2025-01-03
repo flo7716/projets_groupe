@@ -1,19 +1,30 @@
-import instaloader
+from flask import Flask, request, jsonify
 import mysql.connector
 from mysql.connector import connect, Error
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+from apify_client import ApifyClient
 
+# Initialisation de Flask
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bienvenue sur la page d'accueil de l'API!"
+
+# Configuration de la base de données
+DB_CONFIG = {
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "your_password",
+    "database": "assos"
+}
+
+# Clé API Apify
+APIFY_API_KEY = "apify_api_Lp2selhpX7ioHI35PkQPscJtMW3Anr3S0nvU"
+
+# Connexion à la base de données
 def connect_to_db():
-    """Connexion à la base de données MySQL."""
     try:
-        connection = mysql.connector.connect(
-            host="127.0.0.1",
-            user="instagram_scraper",
-            password="instagram_scraper",
-            database="pig"
-        )
+        connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
             print("Connecté à la base de données.")
         return connection
@@ -21,9 +32,8 @@ def connect_to_db():
         print(f"Erreur lors de la connexion à MySQL : {e}")
         return None
 
-
+# Insérer un événement dans la base
 def insert_event(connection, table, data):
-    """Insertion d'événement dans la table spécifiée."""
     try:
         cursor = connection.cursor()
         query = f"""
@@ -36,85 +46,53 @@ def insert_event(connection, table, data):
     except Error as e:
         print(f"Erreur lors de l'insertion de l'événement : {e}")
 
+# Fonction pour lancer le scraping via Apify
+def scrape_with_apify(account_name):
+    client = ApifyClient(APIFY_API_KEY)
+    run = client.actor("zuzka/instagram-scraper").call(
+        run_input={"search": [account_name], "resultsLimit": 5}
+    )
+    return client.dataset(run["defaultDatasetId"]).list_items()
 
-def update_instagram_link(asso_name, instagram_link, db_connection):
-    """Mettre à jour le lien Instagram dans la table ASSOCIATION."""
-    try:
-        cursor = db_connection.cursor()
-        cursor.execute("SELECT idAsso FROM ASSOCIATION WHERE nomAsso = %s", (asso_name,))
-        result = cursor.fetchone()
-
-        if result:
-            asso_id = result[0]
-            cursor.execute("UPDATE ASSOCIATION SET compteInstagram = %s WHERE idAsso = %s", (instagram_link, asso_id))
-            db_connection.commit()
-            print(f"Compte Instagram pour {asso_name} mis à jour avec succès.")
-        else:
-            print(f"Association {asso_name} non trouvée.")
-        cursor.close()
-    except Error as e:
-        print(f"Erreur lors de la mise à jour de l'Instagram pour {asso_name} : {e}")
-
-
-def scrape_posts(account_name, connection, instagram_link, instagram_user, instagram_pass):
-    """Récupère les posts d'un compte et les insère en base."""
-    # Initialiser instaloader
-    loader = instaloader.Instaloader()
-
-    try:
-        # Authentification avec les identifiants fournis par l'utilisateur
-        if not loader.context.is_logged_in:
-            loader.context.login(instagram_user, instagram_pass)  # Utilise l'input de l'utilisateur
-
-        # Charger les posts du compte
-        profile = instaloader.Profile.from_username(loader.context, account_name)
-        print(f"Scraping des posts pour le compte : {profile.username}")
-
-        # Mettre à jour le lien Instagram dans la base de données
-        update_instagram_link(account_name, instagram_link, connection)
-
-        for post in profile.get_posts():
-            # Extraire les informations nécessaires
-            event_id = post.shortcode
-            event_date = post.date.date()
-            description = post.caption or "Pas de description."
-            location = post.location.name if post.location else "Lieu non spécifié"
-
-            # Déterminer la table (asso ou entreprise)
-            if "asso" in description.lower():
-                table = "EVENEMENT_ORGANISE_PAR_ASSO"
-                organizer_id = "ID_ASSO_EXAMPLE"
-            else:
-                table = "EVENEMENT_ORGANISE_PAR_ENTREPRISE"
-                organizer_id = "ID_ENTREPRISE_EXAMPLE"
-
-            # Insérer en base
-            event_data = (organizer_id, event_id, event_date, location, description)
-            insert_event(connection, table, event_data)
-
-    except Exception as e:
-        print(f"Erreur lors du scraping des posts : {e}")
-
-
-if __name__ == "__main__":
-    # Demander à l'utilisateur son identifiant et mot de passe Instagram
-    instagram_user = input("Entrez votre identifiant Instagram : ")
-    instagram_pass = input("Entrez votre mot de passe Instagram : ")
+# Endpoint Flask pour scraper un compte Instagram
+@app.route("/scrape", methods=["POST"])
+def scrape_account():
+    data = request.json
+    account_name = data.get("account_name")
+    instagram_link = data.get("instagram_link")
+    
+    if not account_name or not instagram_link:
+        return jsonify({"error": "account_name et instagram_link sont requis."}), 400
 
     # Connexion à la base de données
     db_connection = connect_to_db()
     if not db_connection:
-        exit()
+        return jsonify({"error": "Impossible de se connecter à la base de données."}), 500
 
-    # Comptes à scraper (dictionnaire avec noms d'assos et leurs liens Instagram)
-    instagram_accounts = {
-        "Scrypt": "https://www.instagram.com/ipsa.scrypt/"
-    }
+    try:
+        # Lancer le scraping
+        scraped_data = scrape_with_apify(account_name)
 
-    # Scraper chaque compte
-    for account_name, instagram_link in instagram_accounts.items():
-        scrape_posts(account_name, db_connection, instagram_link, instagram_user, instagram_pass)
+        for post in scraped_data["items"]:
+            event_id = post["shortCode"]
+            event_date = post.get("timestamp", "").split("T")[0]
+            description = post.get("caption", "Pas de description.")
+            location = post.get("locationName", "Lieu non spécifié")
 
-    # Fermer la connexion à la base de données
-    db_connection.close()
-    print("Fin du script.")
+            table = "EVENEMENT_ORGANISE_PAR_ASSO" if "asso" in description.lower() else "EVENEMENT_ORGANISE_PAR_ENTREPRISE"
+            organizer_id = "ID_ASSO_EXAMPLE" if "asso" in description.lower() else "ID_ENTREPRISE_EXAMPLE"
+
+            event_data = (organizer_id, event_id, event_date, location, description)
+            insert_event(db_connection, table, event_data)
+
+        return jsonify({"message": f"Scraping pour {account_name} terminé avec succès."})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        db_connection.close()
+
+# Lancer le serveur Flask
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
