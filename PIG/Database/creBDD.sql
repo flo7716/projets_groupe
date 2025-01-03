@@ -1,18 +1,13 @@
 CREATE TABLE ASSOCIATION(
-    idAsso MEDIUMINT NOT NULL AUTO_INCREMENT,
-    nomAsso VARCHAR(255) NOT NULL,
+    nomAsso VARCHAR(255) NOT NULL,       -- nomAsso devient la clé primaire
     domaineAsso VARCHAR(255) NOT NULL,
-    PRIMARY KEY(idAsso)
+    PRIMARY KEY(nomAsso)                 -- nomAsso est la clé primaire
 );
-
 
 CREATE TABLE EVENEMENT_ORGANISE_PAR_ASSO(
-    idAsso MEDIUMINT NOT NULL,
-    idEvent MEDIUMINT NOT NULL AUTO_INCREMENT,
-    dateEvent DATE NOT NULL,
-    lieuEvent VARCHAR(255) NOT NULL,
+    shortCode VARCHAR(255) NOT NULL,
+    nomAsso VARCHAR(255) NOT NULL,       -- nomAsso est une clé étrangère
     descriptionEvent VARCHAR(255) NOT NULL,
-    PRIMARY KEY(idEvent),
-    FOREIGN KEY(idAsso) REFERENCES ASSOCIATION(idAsso)
+    PRIMARY KEY(shortCode),
+    FOREIGN KEY(nomAsso) REFERENCES ASSOCIATION(nomAsso)   -- Référence à nomAsso
 );
-
