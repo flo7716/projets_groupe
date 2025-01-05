@@ -1,0 +1,31 @@
+-- Create the assos database and its tables
+CREATE DATABASE IF NOT EXISTS assos;
+
+USE assos;
+
+CREATE TABLE IF NOT EXISTS ASSOCIATION (
+    idAsso INT AUTO_INCREMENT PRIMARY KEY,
+    nomAsso VARCHAR(255) NOT NULL,
+    domaineAsso VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS EVENEMENT_ORGANISE_PAR_ASSO (
+    idEvent INT AUTO_INCREMENT PRIMARY KEY,
+    shortCode VARCHAR(255) NOT NULL UNIQUE,
+    nomAsso VARCHAR(255) NOT NULL,
+    descriptionEvent TEXT,
+    FOREIGN KEY (nomAsso) REFERENCES ASSOCIATION(nomAsso)
+);
+
+-- Create the news_db database and its tables
+CREATE DATABASE IF NOT EXISTS news_db;
+
+USE news_db;
+
+CREATE TABLE IF NOT EXISTS articles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    link VARCHAR(255) NOT NULL UNIQUE,
+    summary TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
