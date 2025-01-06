@@ -50,6 +50,8 @@ def extract_article_links(url):
         full_link = urljoin(url, link)  # Compléter l'URL si nécessaire
         if 'techcrunch.com' in full_link and '/2025/' in full_link:
             article_links.add(full_link)
+        if len(article_links) >= 10:  # Limiter à 10 articles
+            break
 
     return list(article_links)
 
