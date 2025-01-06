@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pymysql
 from transformers import DistilBertTokenizer, TFDistilBertForSequenceClassification
+import tensorflow as tf
 import numpy as np
 from nltk.tokenize import sent_tokenize
 from urllib.parse import urljoin
@@ -10,6 +11,9 @@ import re
 from dotenv import load_dotenv
 import os
 
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
+
 # Initialisation de Flask
 app = Flask(__name__)
 
@@ -17,12 +21,11 @@ app = Flask(__name__)
 def home():
     return "Bienvenue sur la page d'accueil de l'API!"
 
-
 # Initialisation du modèle DistilBERT et du tokenizer
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = TFDistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
 
-# Liste des mots/phrases à supprimer
+# Liste des mots/phrases à ignorer
 IGNORE_LIST = [
     "Latest", "AI", "Amazon", "Apps", "Biotech & Health", "Climate", "Cloud Computing", 
     "Commerce", "Crypto", "Enterprise", "EVs", "Fintech", "Fundraising", "Gadgets", 
@@ -33,7 +36,7 @@ IGNORE_LIST = [
     "Partner Content", "TechCrunch Brand Studio", "Crunchboard", "Contact Us"
 ]
 
-# Fonction pour récupérer tous les liens d'articles d'une page donnée
+# Fonction pour récupérer les liens d'articles d'une page donnée
 def extract_article_links(url):
     response = requests.get(url)
     if response.status_code != 200:
@@ -41,13 +44,11 @@ def extract_article_links(url):
         return []
 
     soup = BeautifulSoup(response.content, 'html.parser')
-
-    article_links = set()  # Utiliser un set pour éviter les doublons
+    article_links = set()
     for a_tag in soup.find_all('a', href=True):
         link = a_tag['href']
-        full_link = urljoin(url, link)  # Compléter l'URL si nécessaire
-        if 'techcrunch.com' in full_link and '/2025/' in full_link:
-            article_links.add(full_link)
+        full_url = urljoin(url, link)
+        article_links.add(full_url)
         if len(article_links) >= 10:  # Limiter à 10 articles
             break
 
@@ -56,63 +57,56 @@ def extract_article_links(url):
 # Fonction pour extraire et traiter le contenu d'un article
 def scrape_single_article(url):
     response = requests.get(url)
-
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Récupérer le contenu de l'article (supposons qu'il soit dans des <p> ou autres)
         paragraphs = soup.find_all('p')
         article_text = ' '.join([para.get_text().replace('\n', ' ').strip() for para in paragraphs])
 
-        # Nettoyer le texte pour supprimer les retours à la ligne, espaces multiples, etc.
+        # Nettoyage du texte
         article_text = clean_text(article_text)
 
-        # Filtrer les résumés pour enlever l'enchaînement spécifique sans tout éliminer
+        # Filtrage des contenus indésirables
         article_text = filter_summary(article_text)
 
-        # Générer un résumé simple (par exemple, les 3 premières phrases)
+        # Génération d'un résumé simple
         sentences = sent_tokenize(article_text)
         sentences = [sentence.replace('\n', ' ').strip() for sentence in sentences]
-        summary = ' '.join(sentences[:3])  # Prendre les 3 premières phrases comme résumé
+        summary = ' '.join(sentences[:3])
 
-        # Utiliser BERT pour extraire un titre ou des informations
-        title = extract_title_using_bert(article_text)
-        
-        # Sauvegarder l'article, le titre et le résumé dans la base de données
+        # Extraction du titre avec DistilBERT
+        title = extract_title_using_distilbert(article_text)
+
+        # Sauvegarde dans la base de données
         save_to_database(url, title, summary, article_text)
         return {"url": url, "title": title, "summary": summary}
     else:
         return {"error": f"Échec de la récupération de l'article. Code statut : {response.status_code}"}
 
-# Fonction pour extraire le titre avec BERT
-def extract_title_using_bert(text):
+# Fonction pour extraire un titre avec DistilBERT
+def extract_title_using_distilbert(text):
     inputs = tokenizer(text, return_tensors="tf", max_length=512, truncation=True, padding="max_length")
-    with tf.GradientTape() as tape:
-        outputs = model(inputs)
-        logits = outputs.logits
+    outputs = model(inputs)
+    logits = outputs.logits
     predicted_class = np.argmax(logits, axis=-1)
-    title = "Titre prédictif basé sur le modèle BERT"
+    title = "Titre prédictif basé sur le modèle DistilBERT"
     return title
 
-# Fonction pour insérer l'article dans la base de données MySQL
+# Fonction pour insérer un article dans la base de données MySQL
 def save_to_database(url, title, summary, article_text):
     connection = None
     cursor = None
     try:
-        load_dotenv()
-
         connection = pymysql.connect(
-            host=os.getenv('DB_HOST', '127.0.0.1'),
-            user=os.getenv('DB_USER', 'root'),
-            password=os.getenv('DB_PASSWORD', 'your_password'),
-            database=os.getenv('DB_NAME', 'news_db')
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME'),
         )
         cursor = connection.cursor()
         cursor.execute("""
             INSERT INTO articles (link, title, summary, content) 
             VALUES (%s, %s, %s, %s)
         """, (url, title, summary, article_text))
-
         connection.commit()
     except Exception as e:
         print(f"Erreur lors de l'insertion dans la base de données : {e}")
@@ -124,32 +118,27 @@ def save_to_database(url, title, summary, article_text):
 
 # Fonction de nettoyage du texte
 def clean_text(text):
-    # Suppression des retours à la ligne, des espaces multiples, des caractères spéciaux inutiles
     text = re.sub(r'\s+', ' ', text)  # Remplacer les espaces multiples par un seul espace
     text = re.sub(r'\n+', ' ', text)  # Remplacer les sauts de ligne par un espace
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)  # Supprimer les caractères non-ASCII
-    text = text.strip()  # Supprimer les espaces au début et à la fin
+    text = text.strip()
     return text
 
-# Fonction pour filtrer l'enchaînement spécifique sans tout éliminer
+# Fonction pour filtrer les contenus indésirables
 def filter_summary(text):
-    # Ignore l'enchaînement "Latest AI Amazon Apps Biotech..." dans le texte
-    ignore_pattern = r"\bLatest AI Amazon Apps Biotech & Health Climate Cloud Computing Commerce Crypto Enterprise EVs Fintech Fundraising Gadgets Gaming Google Government & Policy Hardware Instagram Layoffs Media & Entertainment Meta Microsoft Privacy Robotics Security Social Space Startups TikTok Transportation Venture Events Startup Battlefield StrictlyVC Newsletters Podcasts Videos Partner Content TechCrunch Brand Studio Crunchboard Contact Us\b"
-    text = re.sub(ignore_pattern, '', text)  # Supprimer l'enchaînement spécifique
-
-    # Nettoyer de nouveau après suppression
-    text = clean_text(text)
-    return text
+    ignore_pattern = r"|".join(re.escape(phrase) for phrase in IGNORE_LIST)
+    text = re.sub(ignore_pattern, '', text)
+    return clean_text(text)
 
 # Route pour récupérer les articles
 @app.route('/articles', methods=['GET'])
 def get_articles():
     base_url = request.args.get('url', 'https://techcrunch.com/')
     article_urls = extract_article_links(base_url)
-    
+
     if article_urls:
         articles = []
-        for url in article_urls:
+        for url in article_urls[:10]:
             articles.append(scrape_single_article(url))
         return jsonify(articles)
     else:
