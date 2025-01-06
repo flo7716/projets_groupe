@@ -8,6 +8,8 @@ from nltk.tokenize import sent_tokenize
 from urllib.parse import urljoin
 from flask import Flask, jsonify, request
 import re
+from dotenv import load_dotenv
+import os
 
 # Initialisation de Flask
 app = Flask(__name__)
@@ -97,7 +99,14 @@ def save_to_database(url, title, summary, article_text):
     connection = None
     cursor = None
     try:
-        connection = pymysql.connect(host='127.0.0.1', user='root', password='your_password', database='news_db')
+        load_dotenv()
+
+        connection = pymysql.connect(
+            host=os.getenv('DB_HOST', '127.0.0.1'),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', 'your_password'),
+            database=os.getenv('DB_NAME', 'news_db')
+        )
         cursor = connection.cursor()
         cursor.execute("""
             INSERT INTO articles (link, title, summary, content) 
