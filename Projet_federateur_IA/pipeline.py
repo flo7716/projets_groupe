@@ -5,8 +5,7 @@ import re
 import pymysql
 import os
 from dotenv import load_dotenv
-from transformers import DistilBertTokenizer, TFDistilBertForSequenceClassification
-import numpy as np
+import spacy
 from flask import Flask, jsonify
 
 # Charger les variables d'environnement
@@ -23,9 +22,8 @@ IGNORE_LIST = [
     "Partner Content", "TechCrunch Brand Studio", "Crunchboard", "Contact Us"
 ]
 
-# Initialiser le modèle DistilBERT (version plus légère)
-tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-model = TFDistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
+# Charger le modèle Spacy (modèle anglais)
+nlp = spacy.load("en_core_web_sm")
 
 # 1. Extraction des liens d'articles depuis TechCrunch
 def extract_article_links(url):
@@ -52,13 +50,11 @@ def clean_text(text):
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)
     return text.strip()
 
-# 3. Génération du titre à partir du texte avec DistilBERT
-def extract_title_using_bert(text):
-    inputs = tokenizer(text, return_tensors="tf", max_length=256, truncation=True, padding="max_length")
-    outputs = model(inputs)
-    logits = outputs.logits
-    predicted_class = np.argmax(logits, axis=-1)
-    title = "Titre prédictif basé sur le modèle DistilBERT"
+# 3. Génération du titre à partir du texte avec Spacy
+def extract_title_using_spacy(text):
+    doc = nlp(text)
+    # Prendre la première phrase comme titre
+    title = " ".join([sent.text for sent in doc.sents][:1])
     return title
 
 # 4. Filtrage du texte en fonction des termes à ignorer
@@ -119,8 +115,8 @@ def main():
         # Nettoyage du texte
         cleaned_text = clean_text(article_text)
 
-        # Génération du titre avec DistilBERT
-        title = extract_title_using_bert(cleaned_text)
+        # Génération du titre avec Spacy
+        title = extract_title_using_spacy(cleaned_text)
 
         # Filtrage du résumé
         summary = filter_summary(cleaned_text)
