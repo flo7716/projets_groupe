@@ -12,7 +12,13 @@ def extract_title_using_bert(text):
     title = "Titre prédictif basé sur le modèle BERT"
     return title
 
+def generate_titles(cleaned_texts):
+    titles = []
+    for text in cleaned_texts:
+        title = extract_title_using_bert(text)
+        titles.append(title)
+    return titles
+
 if __name__ == "__main__":
-    sample_text = "Some article content goes here..."
-    title = extract_title_using_bert(sample_text)
-    print(f"Titre extrait : {title}")
+    titles = generate_titles(["Some article content goes here..."])
+    print(titles)

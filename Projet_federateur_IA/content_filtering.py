@@ -15,7 +15,13 @@ def filter_summary(text):
     text = re.sub(ignore_pattern, '', text)
     return text.strip()
 
+def filter_articles(texts):
+    filtered_articles = []
+    for text in texts:
+        filtered_text = filter_summary(text)
+        filtered_articles.append(filtered_text)
+    return filtered_articles
+
 if __name__ == "__main__":
-    article_text = "This is a news article about AI and Google advancements..."
-    filtered_text = filter_summary(article_text)
-    print(f"Texte filtré : {filtered_text}")
+    filtered_articles = filter_articles(["This is a news article about AI and Google advancements..."])
+    print(filtered_articles)

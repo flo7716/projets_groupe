@@ -19,8 +19,11 @@ def extract_article_links(url):
 
     return list(article_links)
 
-if __name__ == "__main__":
+def collect_articles():
     base_url = 'https://techcrunch.com/'
     article_urls = extract_article_links(base_url)
-    for article in article_urls:
-        print(article)
+    return article_urls
+
+if __name__ == "__main__":
+    article_urls = collect_articles()
+    print(article_urls)

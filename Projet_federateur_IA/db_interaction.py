@@ -28,5 +28,12 @@ def save_to_database(url, title, summary, article_text):
         if connection:
             connection.close()
 
+def save_articles_to_db(articles):
+    for article in articles:
+        save_to_database(article['url'], article['title'], article['summary'], article['content'])
+
 if __name__ == "__main__":
-    save_to_database('https://techcrunch.com/sample-article', 'Sample Title', 'This is a summary', 'Article content goes here...')
+    articles_to_save = [
+        {"url": "https://techcrunch.com/sample-article", "title": "Sample Title", "summary": "Sample Summary", "content": "Article Content"}
+    ]
+    save_articles_to_db(articles_to_save)
