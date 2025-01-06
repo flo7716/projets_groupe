@@ -29,4 +29,4 @@ def save_to_database(url, title, summary, article_text):
             connection.close()
 
 if __name__ == "__main__":
-    save_to_database('https://techcrunch.com/sample-article', 'Sample Title', 'This is a summary', 'Article content goes here...')
+    save_to_database('https://techcrunch.com/2025/01/06/lucid-meets-production-target-with-9029-ev-deliveries-in-2024/', 'Sample Title', 'This is a summary', 'Article content goes here...')
