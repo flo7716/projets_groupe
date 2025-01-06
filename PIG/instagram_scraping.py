@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import time
 from dotenv import load_dotenv
 import os
+import csv
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
@@ -36,6 +37,23 @@ def connect_to_db():
     except mysql.connector.Error as e:
         print(f"Erreur lors de la connexion à MySQL : {e}")
         return None
+
+
+def read_associations_from_csv(csv_path):
+    associations = []
+    try:
+        with open(csv_path, mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if len(row) >= 2:
+                    nom_asso = row[0]
+                    account_name = row[1]
+                    associations.append((nom_asso, account_name))
+        print("Associations lues depuis le CSV.")
+    except Exception as e:
+        print(f"Erreur lors de la lecture du fichier CSV : {e}")
+    return associations
+
 
 # Vérifier si un post existe déjà
 def post_exists(connection, short_code):
@@ -111,58 +129,52 @@ def get_apify_results(run_id):
     return None
 
 
-# Endpoint pour scraper
 @app.route("/scrape", methods=["POST"])
 def scrape_account():
-    data = request.json
-    account_name = data.get("account_name")
-    nom_asso = data.get("nom_asso")
-    domaine_asso = data.get("domaine_asso")
-    
-    if not all([account_name, nom_asso, domaine_asso]):
-        return jsonify({"error": "Les paramètres account_name, nom_asso et domaine_asso sont requis."}), 400
+    # Lire les associations depuis le CSV
+    associations = read_associations_from_csv(CSV_PATH)
 
-    db_connection = connect_to_db()
-    if not db_connection:
-        return jsonify({"error": "Impossible de se connecter à la base de données."}), 500
+    # Pour chaque association, démarrer le scraping
+    results = []
+    for nom_asso, account_name in associations:
+        # Vous pouvez ici réutiliser le reste de votre logique pour chaque association
+        db_connection = connect_to_db()
+        if not db_connection:
+            return jsonify({"error": "Impossible de se connecter à la base de données."}), 500
 
-    try:
-        insert_association_if_not_exists(db_connection, nom_asso, domaine_asso)
+        try:
+            insert_association_if_not_exists(db_connection, nom_asso, "domaine_asso")  # Ajouter le domaine si nécessaire
 
-        # Démarrer l'acteur Apify pour obtenir les posts Instagram
-        run_id = start_apify_actor(account_name)
-        if not run_id:
-            return jsonify({"error": "Échec du lancement de l'acteur Apify."}), 500
+            # Démarrer l'acteur Apify pour obtenir les posts Instagram
+            run_id = start_apify_actor(account_name)
+            if not run_id:
+                return jsonify({"error": f"Échec du lancement de l'acteur Apify pour {account_name}."}), 500
 
-        # Récupérer les résultats du scraping
-        scraped_data = get_apify_results(run_id)
-        if not scraped_data:
-            return jsonify({"error": "Échec de la récupération des résultats du scraping."}), 500
+            # Récupérer les résultats du scraping
+            scraped_data = get_apify_results(run_id)
+            if not scraped_data:
+                return jsonify({"error": "Échec de la récupération des résultats du scraping."}), 500
 
-        # Filtrer les événements plus récents que 90 jours
-        days_limit = datetime.now() - timedelta(days=90)
-        for post in scraped_data.get('items', []):
-            short_code = post["shortCode"]
-            post_date = datetime.strptime(post.get("timestamp", "").split("T")[0], "%Y-%m-%d")
-            description = post.get("caption", "Pas de description.")
+            # Filtrer et insérer les événements dans la base de données (logique déjà définie)
+            days_limit = datetime.now() - timedelta(days=90)
+            for post in scraped_data.get('items', []):
+                short_code = post["shortCode"]
+                post_date = datetime.strptime(post.get("timestamp", "").split("T")[0], "%Y-%m-%d")
+                description = post.get("caption", "Pas de description.")
+                if post_date < days_limit:
+                    continue
+                if post_exists(db_connection, short_code):
+                    continue
+                insert_event(db_connection, nom_asso, short_code, description)
 
-            # Si la date du post est plus ancienne que le seuil limite, on ignore ce post
-            if post_date < days_limit:
-                continue
-            # Vérifier si le post existe déjà dans la base de données
-            if post_exists(db_connection, short_code):
-                continue
+            results.append(f"Scraping pour {account_name} terminé avec succès.")
 
-            # Insérer le nouvel événement dans la base de données
-            insert_event(db_connection, nom_asso, short_code, description)
+        except Exception as e:
+            results.append(f"Erreur avec {account_name}: {str(e)}")
+        finally:
+            db_connection.close()
 
-        return jsonify({"message": f"Scraping pour {account_name} terminé avec succès."})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    finally:
-        db_connection.close()
+    return jsonify({"message": "Scraping terminé", "details": results})
 
 # Lancer Flask
 if __name__ == "__main__":
