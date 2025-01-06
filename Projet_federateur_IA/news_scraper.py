@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import pymysql
-from transformers import DistilBertTokenizer, TFDistilBertForSequenceClassification
+from transformers import BertTokenizer, TFBertForSequenceClassification
 import tensorflow as tf
 import numpy as np
 from nltk.tokenize import sent_tokenize
@@ -11,7 +11,7 @@ import re
 from dotenv import load_dotenv
 import os
 
-# Charger les variables d'environnement depuis le fichier .env
+# Load environment variables from .env file
 load_dotenv()
 
 # Initialisation de Flask
@@ -21,11 +21,11 @@ app = Flask(__name__)
 def home():
     return "Bienvenue sur la page d'accueil de l'API!"
 
-# Initialisation du modèle DistilBERT et du tokenizer
-tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-model = TFDistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
+# Initialisation du modèle BERT et du tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased')
 
-# Liste des mots/phrases à ignorer
+# Liste des mots/phrases à supprimer
 IGNORE_LIST = [
     "Latest", "AI", "Amazon", "Apps", "Biotech & Health", "Climate", "Cloud Computing", 
     "Commerce", "Crypto", "Enterprise", "EVs", "Fintech", "Fundraising", "Gadgets", 
@@ -73,8 +73,8 @@ def scrape_single_article(url):
         sentences = [sentence.replace('\n', ' ').strip() for sentence in sentences]
         summary = ' '.join(sentences[:3])
 
-        # Extraction du titre avec DistilBERT
-        title = extract_title_using_distilbert(article_text)
+        # Extraction du titre avec BERT
+        title = extract_title_using_bert(article_text)
 
         # Sauvegarde dans la base de données
         save_to_database(url, title, summary, article_text)
@@ -82,13 +82,13 @@ def scrape_single_article(url):
     else:
         return {"error": f"Échec de la récupération de l'article. Code statut : {response.status_code}"}
 
-# Fonction pour extraire un titre avec DistilBERT
-def extract_title_using_distilbert(text):
+# Fonction pour extraire un titre avec BERT
+def extract_title_using_bert(text):
     inputs = tokenizer(text, return_tensors="tf", max_length=512, truncation=True, padding="max_length")
     outputs = model(inputs)
     logits = outputs.logits
     predicted_class = np.argmax(logits, axis=-1)
-    title = "Titre prédictif basé sur le modèle DistilBERT"
+    title = "Titre prédictif basé sur le modèle BERT"
     return title
 
 # Fonction pour insérer un article dans la base de données MySQL
@@ -146,4 +146,13 @@ def get_articles():
 
 # Lancer l'application Flask
 if __name__ == "__main__":
+    # Run the Flask app
     app.run(debug=True)
+
+    # For testing purposes, call the get_articles function with a sample URL
+    sample_url = 'https://techcrunch.com/'
+    print("Scraping articles from:", sample_url)
+    articles = extract_article_links(sample_url)
+    for article_url in articles[:10]:
+        article_data = scrape_single_article(article_url)
+        print(article_data)
