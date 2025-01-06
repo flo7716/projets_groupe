@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import pymysql
-from transformers import BertTokenizer, TFBertForSequenceClassification
-import tensorflow as tf
+from transformers import DistilBertTokenizer, TFDistilBertForSequenceClassification
 import numpy as np
 from nltk.tokenize import sent_tokenize
 from urllib.parse import urljoin
@@ -19,10 +18,9 @@ def home():
     return "Bienvenue sur la page d'accueil de l'API!"
 
 
-# Initialisation du modèle BERT et du tokenizer
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased')
-
+# Initialisation du modèle DistilBERT et du tokenizer
+tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+model = TFDistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
 
 # Liste des mots/phrases à supprimer
 IGNORE_LIST = [
