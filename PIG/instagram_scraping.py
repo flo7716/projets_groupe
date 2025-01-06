@@ -3,20 +3,28 @@ import mysql.connector
 import requests
 from datetime import datetime, timedelta
 import time
+from dotenv import load_dotenv
+import os
+
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
 
 app = Flask(__name__)
 
 # Configuration de la base de données
 DB_CONFIG = {
-    "host": "127.0.0.1",
-    "user": "root",
-    "password": "your_password",  # Remplacer par le mot de passe correct
-    "database": "assos"
+    "host": os.getenv("DB_HOST"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME")
 }
 
 # Clé API Apify
-APIFY_API_TOKEN = "apify_api_Lp2selhpX7ioHI35PkQPscJtMW3Anr3S0nvU"
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
 APIFY_RUN_SYNC_URL = f"https://api.apify.com/v2/acts/apify~instagram-scraper/runs/last/dataset/items?token={APIFY_API_TOKEN}"
+
+# Chemin absolu pour le fichier CSV
+CSV_PATH = os.getenv("CSV_PATH")
 
 # Fonction pour se connecter à la base de données MySQL
 def connect_to_db():
