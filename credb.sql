@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS EVENEMENT_ORGANISE_PAR_ASSO (
 );
 
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON assos.EVENEMENT_ORGANISE_PAR_ASSO TO 'president_username'@'%';
+
+
+
 -- Create the news_db database and its tables
 CREATE DATABASE IF NOT EXISTS news_db;
 
