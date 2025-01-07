@@ -5,9 +5,6 @@ CREATE DATABASE assos;
 USE assos;
 
 
--- Utiliser la base de données "assos"
-USE assos;
-
 -- Créer la table "associations" pour stocker les informations sur les associations
 CREATE TABLE associations (
     idAsso INT AUTO_INCREMENT PRIMARY KEY,
