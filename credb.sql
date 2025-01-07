@@ -1,48 +1,43 @@
--- Créer la base de données "assos"
+-- 1. Création de la base de données `users`
+CREATE DATABASE users;
+
+-- 2. Création de la table `users` dans la base `users`
+USE users;
+
+CREATE TABLE users (
+    idUser INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL
+);
+
+-- 3. Création de la base de données `assos` (pour les associations et événements)
 CREATE DATABASE assos;
 
--- Utiliser la base de données "assos"
+-- 4. Création de la table `assos` dans la base `assos`
 USE assos;
 
-
--- Créer la table "associations" pour stocker les informations sur les associations
-CREATE TABLE associations (
+CREATE TABLE assos (
     idAsso INT AUTO_INCREMENT PRIMARY KEY,
     nomAsso VARCHAR(255) NOT NULL,
-    description TEXT
-);
-
--- Créer la table "events" pour stocker les événements des associations
-CREATE TABLE events (
-    idEvent INT AUTO_INCREMENT PRIMARY KEY,
-    idAsso INT,
     description TEXT,
-    dateEvent DATETIME NOT NULL,
-    FOREIGN KEY (idAsso) REFERENCES associations(idAsso) ON DELETE CASCADE
+    idUser INT,  -- ID de l'utilisateur responsable de l'association
+    FOREIGN KEY (idUser) REFERENCES users(idUser)  -- Relation avec la table `users`
 );
 
-
--- Créer la base de données "news"
+-- 5. Création de la base de données `news` (pour les articles)
 CREATE DATABASE news;
 
--- Utiliser la base de données "news"
+-- 6. Création de la table `articles` dans la base `news`
 USE news;
 
--- Créer la table "articles" pour stocker les articles d'actualités
 CREATE TABLE articles (
     idArticle INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    content TEXT,
+    content TEXT NOT NULL,
     source VARCHAR(255),
-    published_date DATETIME,
-    image_url VARCHAR(255)
-);
-
--- Optionnel : Créer une table pour les utilisateurs si nécessaire
--- Créer la table "users" pour stocker les informations des utilisateurs (si tu en as besoin pour le login)
-CREATE TABLE users (
-    idUser INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('responsable', 'scraper', 'admin') NOT NULL
+    publish_date DATETIME,
+    image_url VARCHAR(255),
+    idUser INT,  -- ID de l'utilisateur (scraper) ayant ajouté ou modifié l'article
+    FOREIGN KEY (idUser) REFERENCES users(idUser)  -- Relation avec la table `users`
 );
