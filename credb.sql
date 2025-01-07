@@ -4,8 +4,6 @@ CREATE DATABASE assos;
 -- Utiliser la base de données "assos"
 USE assos;
 
--- Créer la base de données "assos"
-CREATE DATABASE assos;
 
 -- Utiliser la base de données "assos"
 USE assos;
