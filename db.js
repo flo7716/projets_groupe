@@ -1,6 +1,4 @@
 const mysql = require('mysql2');
-
-// Configuration de la connexion à la base de données RDS
 require('dotenv').config();
 
 const connection = mysql.createConnection({
@@ -11,11 +9,11 @@ const connection = mysql.createConnection({
 });
 
 connection.connect((err) => {
-  if (err) {
-    console.error('Erreur de connexion à la base de données: ', err.stack);
-    return;
-  }
-  console.log('Connecté à la base de données avec l\'ID: ' + connection.threadId);
+    if (err) {
+        console.error('Erreur de connexion à la base de données: ', err.stack);
+        return;
+    }
+    console.log('Connecté à la base de données avec l\'ID: ' + connection.threadId);
 });
 
 module.exports = connection;
