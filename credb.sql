@@ -1,52 +1,53 @@
--- Create the assos database and its tables
-CREATE DATABASE IF NOT EXISTS assos;
+-- Créer la base de données "assos"
+CREATE DATABASE assos;
 
+-- Utiliser la base de données "assos"
 USE assos;
 
--- Table des utilisateurs
-CREATE TABLE IF NOT EXISTS USER (
-    idUser INT AUTO_INCREMENT PRIMARY KEY,
-    nomUser VARCHAR(255) NOT NULL,
-    prenomUser VARCHAR(255) NOT NULL,
-    emailUser VARCHAR(255) NOT NULL UNIQUE,
-    passwordUser VARCHAR(255) NOT NULL,
-    roleUser ENUM('admin', 'president') NOT NULL
-);
+-- Créer la base de données "assos"
+CREATE DATABASE assos;
 
--- Table des associations
-CREATE TABLE IF NOT EXISTS ASSOCIATION (
+-- Utiliser la base de données "assos"
+USE assos;
+
+-- Créer la table "associations" pour stocker les informations sur les associations
+CREATE TABLE associations (
     idAsso INT AUTO_INCREMENT PRIMARY KEY,
-    nomAsso VARCHAR(255) NOT NULL UNIQUE,
-    domaineAsso VARCHAR(255) NOT NULL,
-    presidentId INT NOT NULL,
-    FOREIGN KEY (presidentId) REFERENCES USER(idUser) -- Associe un président
+    nomAsso VARCHAR(255) NOT NULL,
+    description TEXT
 );
 
-
--- Table des événements
-CREATE TABLE IF NOT EXISTS EVENEMENT_ORGANISE_PAR_ASSO (
+-- Créer la table "events" pour stocker les événements des associations
+CREATE TABLE events (
     idEvent INT AUTO_INCREMENT PRIMARY KEY,
-    shortCode VARCHAR(255) NOT NULL UNIQUE,
-    idAsso INT NOT NULL,
-    descriptionEvent TEXT,
+    idAsso INT,
+    description TEXT,
     dateEvent DATETIME NOT NULL,
-    FOREIGN KEY (idAsso) REFERENCES ASSOCIATION(idAsso)
+    FOREIGN KEY (idAsso) REFERENCES associations(idAsso) ON DELETE CASCADE
 );
 
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON assos.EVENEMENT_ORGANISE_PAR_ASSO TO 'president_username'@'%';
+-- Créer la base de données "news"
+CREATE DATABASE news;
 
+-- Utiliser la base de données "news"
+USE news;
 
-
--- Create the news_db database and its tables
-CREATE DATABASE IF NOT EXISTS news_db;
-
-USE news_db;
-
-CREATE TABLE IF NOT EXISTS articles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+-- Créer la table "articles" pour stocker les articles d'actualités
+CREATE TABLE articles (
+    idArticle INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    link VARCHAR(255) NOT NULL UNIQUE,
-    summary TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    content TEXT,
+    source VARCHAR(255),
+    published_date DATETIME,
+    image_url VARCHAR(255)
+);
+
+-- Optionnel : Créer une table pour les utilisateurs si nécessaire
+-- Créer la table "users" pour stocker les informations des utilisateurs (si tu en as besoin pour le login)
+CREATE TABLE users (
+    idUser INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('responsable', 'scraper', 'admin') NOT NULL
 );
