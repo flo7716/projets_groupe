@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS assos (
     nomAsso VARCHAR(255) NOT NULL,
     description TEXT,
     idUser INT,  -- ID de l'utilisateur responsable de l'association
-    FOREIGN KEY (idUser) REFERENCES users(idUser)  -- Relation avec la table `users`
+    FOREIGN KEY (idUser) REFERENCES users.users(idUser)  -- Relation avec la table `users`
 );
 
 -- 5. Création de la base de données `news`
@@ -39,5 +39,5 @@ CREATE TABLE IF NOT EXISTS articles (
     publish_date DATETIME,
     image_url VARCHAR(255),
     idUser INT,  -- ID de l'utilisateur (scraper) ayant ajouté ou modifié l'article
-    FOREIGN KEY (idUser) REFERENCES users(idUser)  -- Relation avec la table `users`
+    FOREIGN KEY (idUser) REFERENCES users.users(idUser)  -- Relation avec la table `users`
 );
