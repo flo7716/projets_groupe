@@ -1,13 +1,11 @@
 const express = require('express');
-const AWS = require('aws-sdk');
+const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-dynamodb');
 const bodyParser = require('body-parser');
 
-// Configuration de AWS DynamoDB
-AWS.config.update({
-  region: 'us-east-1', // Remplace par ta région AWS
-});
-
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+// Configuration de AWS DynamoDB avec SDK v3
+const client = new DynamoDBClient({ region: 'us-east-1' });  // Remplace par ta région
+const dynamoDB = DynamoDBDocumentClient.from(client);
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,11 +14,12 @@ app.use(bodyParser.json());
 app.get('/api/assos', async (req, res) => {
   try {
     const params = {
-      TableName: 'assos', // Remplace par ton nom de table DynamoDB
+      TableName: 'assos',
     };
 
-    const data = await dynamoDB.scan(params).promise();
-    res.json(data.Items);
+    const data = await dynamoDB.send(new ScanCommand(params));
+    const items = data.Items.map((item) => unmarshall(item));
+    res.json(items);
   } catch (error) {
     console.error(error);
     res.status(500).send('Erreur serveur');
@@ -33,16 +32,16 @@ app.post('/api/assos', async (req, res) => {
 
   const params = {
     TableName: 'assos',
-    Item: {
-      idEvent: `${Date.now()}`,  // Utilisation de l'ID basé sur l'heure (id unique)
+    Item: marshall({
+      idEvent: `${Date.now()}`, // ID unique basé sur le timestamp
       nomAsso,
       description,
       date,
-    },
+    }),
   };
 
   try {
-    await dynamoDB.put(params).promise();
+    await dynamoDB.send(new PutItemCommand(params));
     res.status(201).send('Événement ajouté');
   } catch (error) {
     console.error(error);
