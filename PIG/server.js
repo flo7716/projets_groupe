@@ -10,6 +10,14 @@ const dynamoDB = DynamoDBDocumentClient.from(client);
 const app = express();
 app.use(bodyParser.json());
 
+// Middleware pour gérer les headers CORS
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
 // Route pour récupérer les événements d'une association
 app.get('/api/assos', async (req, res) => {
   try {
