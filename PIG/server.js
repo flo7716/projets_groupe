@@ -4,6 +4,7 @@ const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-d
 const bodyParser = require('body-parser');
 
 // Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
+// Pas besoin de spécifier les clés d'accès AWS ici car le rôle IAM associé à l'instance EC2 les gère automatiquement.
 const client = new DynamoDBClient({ region: 'eu-west-3' });  // Région Paris
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
@@ -75,4 +76,3 @@ app.post('/api/assos', async (req, res) => {
 app.listen(3000, '0.0.0.0', () => {
   console.log('Serveur Node.js en écoute sur http://localhost:3000');
 });
-
