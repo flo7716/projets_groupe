@@ -74,9 +74,8 @@ def scrape_article(url):
 # Fonction pour ajouter un article dans DynamoDB
 def add_article_to_dynamodb(article_data):
     try:
-        print(f"Tentative d'ajout dans DynamoDB : {article_data['title']}")
         table.put_item(Item=article_data)
-        print(f"Article ajouté dans DynamoDB: {article_data['title']}")
+        print(f"Article ajouté dans DynamoDB : {article_data['title']}")  # Affichage du titre de l'article ajouté
     except Exception as e:
         print(f"Erreur lors de l'ajout de l'article dans DynamoDB: {e}")
         print(f"Article qui n'a pas pu être ajouté: {article_data}")
@@ -92,10 +91,9 @@ def get_article_urls_from_index(url, limit=5):
         # Rechercher tous les liens d'articles dans la page d'index
         article_links = set()
 
-        # Exemple : pour TechCrunch, les liens sont souvent dans des balises <a> avec une classe spécifique
         for link in soup.find_all('a', {'href': True}):
             href = link['href']
-            if 'techcrunch.com' in href and '/2025/' in href:  # Assurer de ne récupérer que les articles récents
+            if 'techcrunch.com' in href and '/2025/' in href:
                 article_links.add(f"https://techcrunch.com{href}" if not href.startswith('http') else href)
 
             # Limiter à 5 articles
@@ -115,45 +113,18 @@ def clean_text(text):
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)  # Supprimer les caractères non-ASCII
     return text.strip()
 
-# Fonction pour afficher les articles scrappés pour débogage
-def scrap_display_articles():
-    # URL de la page d'index (ex: page d'accueil ou une page d'articles récents)
-    index_url = "https://techcrunch.com/"
-
-    # Obtenir tous les liens d'articles de la page d'index, limité à 5
-    article_urls = get_article_urls_from_index(index_url, limit=5)
-
-    # Scraper chaque article et afficher les résultats
-    for url in article_urls:
-        article = scrape_article(url)
-        if article:
-            print("\n--- Article Scrappé ---")
-            print(f"URL: {article['url']}")
-            print(f"Titre: {article['title']}")
-            print(f"Résumé: {article['summary']}")
-            print(f"Date de publication: {article['datePublication']}")
-            print(f"Image URL: {article['image_url']}")
-            print(f"Source: {article['source']}")
-            print(f"Journal: {article['journal_name']}")
-            print("--- Fin de l'Article ---\n")
-
-# Fonction pour scrapper et stocker les articles
+# Fonction pour scraper et stocker les articles
 def scrape_and_store_articles():
-    # URL de la page d'index (ex: page d'accueil ou une page d'articles récents)
     index_url = "https://techcrunch.com/"
-
-    # Obtenir tous les liens d'articles de la page d'index, limité à 5
     article_urls = get_article_urls_from_index(index_url, limit=5)
 
-    # Scraper chaque article et l'ajouter dans DynamoDB
     for url in article_urls:
         article = scrape_article(url)
         if article:
-            add_article_to_dynamodb(article)
+            add_article_to_dynamodb(article)  # Appel de la fonction d'ajout dans DynamoDB
 
 # Lancer le script
 if __name__ == "__main__":
-    # Utiliser la fonction de débogage pour afficher les articles
-    scrap_display_articles()
-    # Si tu veux vraiment les stocker dans DynamoDB, tu peux commenter la ligne ci-dessus et décommenter la ligne suivante
-    # scrape_and_store_articles()
+    print("Démarrage du scraping et de l'ajout d'articles...")
+    scrape_and_store_articles()
+    print("Script terminé.")
