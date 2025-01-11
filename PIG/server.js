@@ -23,8 +23,6 @@ app.get('/', (req, res) => {
   res.send('Serveur Express fonctionne correctement');
 });
 
-const { unmarshall } = require('@aws-sdk/lib-dynamodb');  // Assurez-vous que ceci est correct
-
 // Exemple d'utilisation de unmarshall
 app.get('/api/assos', async (req, res) => {
   try {
@@ -45,7 +43,6 @@ app.get('/api/assos', async (req, res) => {
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
-
 
 // Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
