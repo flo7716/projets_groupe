@@ -51,12 +51,12 @@ def scrape_article(url):
 
         # Retourner les données extraites sous forme de dictionnaire
         return {
-            'url': url,
-            'title': title,
-            'summary': summary,
-            'date': date,
-            'image_url': image_url,
-            'source': 'TechCrunch'
+        'url': url,
+        'title': title,
+        'summary': summary,
+        'datePublication': date,
+        'image_url': image_url,
+        'source': f'TechCrunch: {url}',  # Utilisation du formatage de chaîne f-string
         }
 
     except requests.exceptions.RequestException as e:
