@@ -74,10 +74,12 @@ def scrape_article(url):
 # Fonction pour ajouter un article dans DynamoDB
 def add_article_to_dynamodb(article_data):
     try:
+        print(f"Tentative d'ajout dans DynamoDB : {article_data['title']}")
         table.put_item(Item=article_data)
         print(f"Article ajouté dans DynamoDB: {article_data['title']}")
     except Exception as e:
         print(f"Erreur lors de l'ajout de l'article dans DynamoDB: {e}")
+        print(f"Article qui n'a pas pu être ajouté: {article_data}")
 
 # Fonction pour récupérer automatiquement les URLs des articles d'une page d'index
 def get_article_urls_from_index(url, limit=5):
