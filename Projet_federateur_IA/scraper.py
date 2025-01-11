@@ -4,6 +4,7 @@ import spacy
 import re
 import boto3
 from datetime import datetime
+import xml.etree.ElementTree as ET
 
 # Charger le modèle léger de SpaCy
 nlp = spacy.load('en_core_web_sm')
@@ -14,6 +15,32 @@ ignore_pattern = r"\bLatest AI|Amazon|Apps|Biotech & Health|Climate|Cloud Comput
 # Configuration DynamoDB
 dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')  # Remplacer par la région de DynamoDB
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
+
+# Fonction pour récupérer les URLs des articles depuis le sitemap
+def fetch_article_urls_from_sitemap(sitemap_url):
+    try:
+        # Ajouter un en-tête 'User-Agent' pour éviter d'être bloqué par des protections anti-bot
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        response = requests.get(sitemap_url, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        # Parser le fichier XML du sitemap
+        root = ET.fromstring(response.content)
+
+        # Extraire les URLs des articles (ne prendre que celles qui commencent par /article/)
+        article_urls = []
+        for url in root.findall(".//url/loc"):
+            article_url = url.text
+            if article_url.startswith("https://www.computerworld.com/article/"):
+                article_urls.append(article_url)
+
+        return article_urls
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur lors de la récupération du sitemap: {e}")
+        return []
 
 # Fonction pour scrapper un article
 def scrape_article(url):
@@ -64,7 +91,7 @@ def scrape_article(url):
             'datePublication': date,
             'image_url': image_url,
             'source': url,
-            'journal_name': 'TechCrunch',  # Ajout du nom du journal
+            'journal_name': 'ComputerWorld',  # Nom du journal mis à jour
         }
 
     except requests.exceptions.RequestException as e:
@@ -80,43 +107,10 @@ def add_article_to_dynamodb(article_data):
         print(f"Erreur lors de l'ajout de l'article dans DynamoDB: {e}")
         print(f"Article qui n'a pas pu être ajouté: {article_data}")
 
-# Fonction pour récupérer automatiquement les URLs des articles d'une page d'index
-def get_article_urls_from_index(url, limit=5):
-    try:
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()  # Si le statut HTTP est 4xx ou 5xx, cela soulève une exception
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Rechercher tous les liens d'articles dans la page d'index
-        article_links = set()
-
-        for link in soup.find_all('a', {'href': True}):
-            href = link['href']
-            if 'techcrunch.com' in href and '/2025/' in href:
-                article_links.add(f"https://techcrunch.com{href}" if not href.startswith('http') else href)
-
-            # Limiter à 5 articles
-            if len(article_links) >= limit:
-                break
-
-        return list(article_links)
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erreur lors de la récupération de l'index {url}: {e}")
-        return []
-
-# Fonction pour nettoyer le texte brut
-def clean_text(text):
-    """Nettoie le texte brut."""
-    text = re.sub(r'\s+', ' ', text)  # Remplacer les espaces multiples par un espace unique
-    text = re.sub(r'[^\x00-\x7F]+', ' ', text)  # Supprimer les caractères non-ASCII
-    return text.strip()
-
 # Fonction pour scraper et stocker les articles
 def scrape_and_store_articles():
-    index_url = "https://techcrunch.com/"
-    article_urls = get_article_urls_from_index(index_url, limit=5)
+    sitemap_url = "https://www.computerworld.com/sitemap_index.xml"
+    article_urls = fetch_article_urls_from_sitemap(sitemap_url)
 
     for url in article_urls:
         article = scrape_article(url)
