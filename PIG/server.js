@@ -31,10 +31,15 @@ app.get('/api/assos', async (req, res) => {
     };
 
     const data = await dynamoDB.send(new ScanCommand(params));
+    if (!data.Items) {
+      return res.status(404).send('Aucun événement trouvé');
+    }
+    
+    // Transformation des éléments en objets lisibles
     const items = data.Items.map((item) => unmarshall(item));
     res.json(items);
   } catch (error) {
-    console.error(error);
+    console.error('Erreur lors de la récupération des événements:', error);
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
@@ -42,6 +47,10 @@ app.get('/api/assos', async (req, res) => {
 // Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
   const { nomAsso, description, date } = req.body;
+
+  if (!nomAsso || !description || !date) {
+    return res.status(400).send('Les informations de l\'événement sont manquantes');
+  }
 
   const params = {
     TableName: 'assos',  // Table DynamoDB
@@ -57,7 +66,7 @@ app.post('/api/assos', async (req, res) => {
     await dynamoDB.send(new PutItemCommand(params));
     res.status(201).send('Événement ajouté avec succès');
   } catch (error) {
-    console.error(error);
+    console.error('Erreur lors de l\'ajout de l\'événement:', error);
     res.status(500).send('Erreur serveur lors de l\'ajout de l\'événement');
   }
 });
