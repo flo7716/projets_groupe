@@ -24,23 +24,31 @@ app.get('/', (req, res) => {
   res.send('Serveur Express fonctionne correctement');
 });
 
-// Route pour récupérer les événements d'une association depuis DynamoDB
 app.get('/api/assos', async (req, res) => {
   try {
-    const params = { TableName: 'assos' };  // Nom de ta table DynamoDB
-    const data = await dynamoDB.send(new ScanCommand(params));
+    const params = {
+      TableName: 'assos',  // Table DynamoDB
+    };
 
+    const data = await dynamoDB.send(new ScanCommand(params));
     if (!data.Items) {
       return res.status(404).send('Aucun événement trouvé');
     }
 
-    const items = data.Items.map((item) => unmarshall(item)); // Unmarshall pour rendre les données lisibles
-    res.json(items);  // Envoi des événements sous forme de JSON
+    // Vérifie si unmarshall est bien une fonction
+    if (typeof unmarshall !== 'function') {
+      return res.status(500).send('Erreur de chargement de unmarshall');
+    }
+
+    // Transformation des éléments en objets lisibles
+    const items = data.Items.map((item) => unmarshall(item));  // Utilisation de unmarshall pour convertir les éléments
+    res.json(items);
   } catch (error) {
     console.error('Erreur lors de la récupération des événements:', error);
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
+
 
 
 // Route pour ajouter un événement à la table DynamoDB
