@@ -27,23 +27,21 @@ app.get('/', (req, res) => {
 // Route pour récupérer les événements d'une association depuis DynamoDB
 app.get('/api/assos', async (req, res) => {
   try {
-    const params = {
-      TableName: 'assos',  // Table DynamoDB
-    };
-
+    const params = { TableName: 'assos' };  // Nom de ta table DynamoDB
     const data = await dynamoDB.send(new ScanCommand(params));
+
     if (!data.Items) {
       return res.status(404).send('Aucun événement trouvé');
     }
-    
-    // Transformation des éléments en objets lisibles
-    const items = data.Items.map((item) => unmarshall(item));
-    res.json(items);
+
+    const items = data.Items.map((item) => unmarshall(item)); // Unmarshall pour rendre les données lisibles
+    res.json(items);  // Envoi des événements sous forme de JSON
   } catch (error) {
     console.error('Erreur lors de la récupération des événements:', error);
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
+
 
 // Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
@@ -54,7 +52,7 @@ app.post('/api/assos', async (req, res) => {
   }
 
   const params = {
-    TableName: 'assos',  // Table DynamoDB
+    TableName: 'assos',  // Nom de ta table DynamoDB
     Item: marshall({
       idEvent: `${Date.now()}`,  // ID unique basé sur le timestamp
       nomAsso,
@@ -64,13 +62,14 @@ app.post('/api/assos', async (req, res) => {
   };
 
   try {
-    await dynamoDB.send(new PutItemCommand(params));
+    await dynamoDB.send(new PutItemCommand(params));  // Envoi la commande PutItem pour ajouter l'événement
     res.status(201).send('Événement ajouté avec succès');
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'événement:', error);
     res.status(500).send('Erreur serveur lors de l\'ajout de l\'événement');
   }
 });
+
 
 // Lancer le serveur sur toutes les interfaces (0.0.0.0) pour être accessible à l'extérieur
 app.listen(3000, '0.0.0.0', () => {
