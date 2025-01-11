@@ -1,6 +1,7 @@
 const express = require('express');
 const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, marshall } = require('@aws-sdk/lib-dynamodb');
+const { unmarshall } = require('@aws-sdk/util-dynamodb'); // Correct import
 const bodyParser = require('body-parser');
 
 // Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
