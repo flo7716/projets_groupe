@@ -3,8 +3,8 @@ const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client
 const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-dynamodb');
 const bodyParser = require('body-parser');
 
-// Configuration de AWS DynamoDB avec SDK v3
-const client = new DynamoDBClient({ region: 'us-east-1' });  // Remplace par ta région
+// Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
+const client = new DynamoDBClient({ region: 'eu-west-3' });  // Région Paris
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
 const app = express();
@@ -18,11 +18,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Route pour récupérer les événements d'une association
+// Route de test pour vérifier si le serveur fonctionne
+app.get('/', (req, res) => {
+  res.send('Serveur Express fonctionne correctement');
+});
+
+// Route pour récupérer les événements d'une association depuis DynamoDB
 app.get('/api/assos', async (req, res) => {
   try {
     const params = {
-      TableName: 'assos',
+      TableName: 'assos',  // Table DynamoDB
     };
 
     const data = await dynamoDB.send(new ScanCommand(params));
@@ -30,18 +35,18 @@ app.get('/api/assos', async (req, res) => {
     res.json(items);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Erreur serveur');
+    res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
 
-// Route pour ajouter un événement
+// Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
   const { nomAsso, description, date } = req.body;
 
   const params = {
-    TableName: 'assos',
+    TableName: 'assos',  // Table DynamoDB
     Item: marshall({
-      idEvent: `${Date.now()}`, // ID unique basé sur le timestamp
+      idEvent: `${Date.now()}`,  // ID unique basé sur le timestamp
       nomAsso,
       description,
       date,
@@ -50,10 +55,10 @@ app.post('/api/assos', async (req, res) => {
 
   try {
     await dynamoDB.send(new PutItemCommand(params));
-    res.status(201).send('Événement ajouté');
+    res.status(201).send('Événement ajouté avec succès');
   } catch (error) {
     console.error(error);
-    res.status(500).send('Erreur serveur');
+    res.status(500).send('Erreur serveur lors de l\'ajout de l\'événement');
   }
 });
 
