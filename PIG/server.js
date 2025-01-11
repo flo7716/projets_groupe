@@ -1,7 +1,6 @@
 const express = require('express');
 const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, marshall } = require('@aws-sdk/lib-dynamodb');
-const AWS = require('aws-sdk'); // Importation d'AWS SDK classique pour accéder au Converter
+const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-dynamodb');
 const bodyParser = require('body-parser');
 
 // Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
@@ -36,8 +35,8 @@ app.get('/api/assos', async (req, res) => {
       return res.status(404).send('Aucun événement trouvé');
     }
 
-    // Utilisation de AWS.DynamoDB.Converter.unmarshall pour transformer les données
-    const items = data.Items.map((item) => AWS.DynamoDB.Converter.unmarshall(item)); // Désérialisation avec Converter
+    // Désérialisation avec unmarshall de la bibliothèque AWS SDK v3
+    const items = data.Items.map((item) => unmarshall(item));
     res.json(items);
   } catch (error) {
     console.error('Erreur lors de la récupération des événements:', error);
