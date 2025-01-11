@@ -39,7 +39,11 @@ def scrape_article(url):
         image_url = image_url['content'] if image_url else 'Image non trouvée'
 
         # Formatage de la date pour correspondre à un format lisible
-        date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y-%m-%d') if date != 'Date non trouvée' else date
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y-%m-%d') if date != 'Date non trouvée' else date
+        except ValueError:
+            # Essayer d'autres formats ou laisser la date inchangée
+            date = 'Date non trouvée'
 
         # Gestion des paywalls et articles inaccessibles
         if "paywall" in response.text.lower():
