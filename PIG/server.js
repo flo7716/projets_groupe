@@ -1,10 +1,10 @@
 const express = require('express');
 const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, marshall, unmarshall } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, marshall } = require('@aws-sdk/lib-dynamodb');
+const AWS = require('aws-sdk'); // Importation d'AWS SDK classique pour accéder au Converter
 const bodyParser = require('body-parser');
 
 // Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
-// Pas besoin de spécifier les clés d'accès AWS ici car le rôle IAM associé à l'instance EC2 les gère automatiquement.
 const client = new DynamoDBClient({ region: 'eu-west-3' });  // Région Paris
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
   res.send('Serveur Express fonctionne correctement');
 });
 
+// Route pour récupérer les événements d'une association depuis DynamoDB
 app.get('/api/assos', async (req, res) => {
   try {
     const params = {
@@ -35,21 +36,14 @@ app.get('/api/assos', async (req, res) => {
       return res.status(404).send('Aucun événement trouvé');
     }
 
-    // Vérifie si unmarshall est bien une fonction
-    if (typeof unmarshall !== 'function') {
-      return res.status(500).send('Erreur de chargement de unmarshall');
-    }
-
-    // Transformation des éléments en objets lisibles
-    const items = data.Items.map((item) => unmarshall(item));  // Utilisation de unmarshall pour convertir les éléments
+    // Utilisation de AWS.DynamoDB.Converter.unmarshall pour transformer les données
+    const items = data.Items.map((item) => AWS.DynamoDB.Converter.unmarshall(item)); // Désérialisation avec Converter
     res.json(items);
   } catch (error) {
     console.error('Erreur lors de la récupération des événements:', error);
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
-
-
 
 // Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
@@ -60,7 +54,7 @@ app.post('/api/assos', async (req, res) => {
   }
 
   const params = {
-    TableName: 'assos',  // Nom de ta table DynamoDB
+    TableName: 'assos',  // Table DynamoDB
     Item: marshall({
       idEvent: `${Date.now()}`,  // ID unique basé sur le timestamp
       nomAsso,
@@ -70,14 +64,13 @@ app.post('/api/assos', async (req, res) => {
   };
 
   try {
-    await dynamoDB.send(new PutItemCommand(params));  // Envoi la commande PutItem pour ajouter l'événement
+    await dynamoDB.send(new PutItemCommand(params));
     res.status(201).send('Événement ajouté avec succès');
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'événement:', error);
     res.status(500).send('Erreur serveur lors de l\'ajout de l\'événement');
   }
 });
-
 
 // Lancer le serveur sur toutes les interfaces (0.0.0.0) pour être accessible à l'extérieur
 app.listen(3000, '0.0.0.0', () => {
