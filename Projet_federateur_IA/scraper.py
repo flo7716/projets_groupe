@@ -21,20 +21,22 @@ def scrape_article(url):
 
         # Extraction des informations de l'article
         title = soup.find('h1') or soup.find('title')
-        title = title.get_text() if title else 'Titre non trouvé'
+        title = title.get_text(strip=True) if title else 'Titre non trouvé'
 
         date = soup.find('time')  # Recherche de la balise <time>
-        date = date.get_text() if date else 'Date non trouvée'
+        date = date.get_text(strip=True) if date else 'Date non trouvée'
 
         # Extraire le contenu de l'article
         article_content = soup.find('div', {'class': 'article-body'})  # Classe spécifique à ajuster selon la structure du site
-        article_content = article_content.get_text() if article_content else 'Contenu non trouvé'
+        article_content = article_content.get_text(strip=True) if article_content else 'Contenu non trouvé'
 
         # Utilisation de SpaCy pour générer un résumé ou une description de l'article
-        doc = nlp(article_content)
-        summary = ' '.join([sent.text for sent in doc.sents][:3])  # Résumer les 3 premières phrases
+        summary = "Résumé non disponible"
+        if article_content and len(article_content) > 100:  # Vérifier que le contenu est suffisant
+            doc = nlp(article_content)
+            summary = ' '.join([sent.text for sent in doc.sents][:3])  # Résumer les 3 premières phrases
 
-        # Recherche de l'image et autres informations
+        # Recherche de l'image
         image_url = soup.find('meta', {'property': 'og:image'})  # Recherche de l'image partagée sur les réseaux sociaux
         image_url = image_url['content'] if image_url else 'Image non trouvée'
 
@@ -42,7 +44,6 @@ def scrape_article(url):
         try:
             date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y-%m-%d') if date != 'Date non trouvée' else date
         except ValueError:
-            # Essayer d'autres formats ou laisser la date inchangée
             date = 'Date non trouvée'
 
         # Gestion des paywalls et articles inaccessibles
@@ -51,12 +52,13 @@ def scrape_article(url):
 
         # Retourner les données extraites sous forme de dictionnaire
         return {
-        'url': url,
-        'title': title,
-        'summary': summary,
-        'datePublication': date,
-        'image_url': image_url,
-        'source': f'TechCrunch: {url}',  # Utilisation du formatage de chaîne f-string
+            'url': url,
+            'title': title,
+            'summary': summary,
+            'datePublication': date,
+            'image_url': image_url,
+            'source': url,
+            'journal_name': 'TechCrunch',  # Ajout du nom du journal
         }
 
     except requests.exceptions.RequestException as e:
