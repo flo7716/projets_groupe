@@ -1,7 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
+import spacy
 import boto3
 from datetime import datetime
+
+# Chargement du modèle SpaCy (version légère)
+nlp = spacy.load('en_core_web_sm')  # Utiliser le modèle léger pour éviter une surcharge mémoire
 
 # Configuration DynamoDB
 dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')  # Remplacer par la région de DynamoDB
@@ -22,9 +26,15 @@ def scrape_article(url):
         date = soup.find('time')  # Recherche de la balise <time>
         date = date.get_text() if date else 'Date non trouvée'
 
-        summary = soup.find('meta', {'name': 'description'})  # Exemple de meta-description
-        summary = summary['content'] if summary else 'Résumé non trouvé'
+        # Extraire le contenu de l'article
+        article_content = soup.find('div', {'class': 'article-body'})  # Classe spécifique à ajuster selon la structure du site
+        article_content = article_content.get_text() if article_content else 'Contenu non trouvé'
 
+        # Utilisation de SpaCy pour générer un résumé ou une description de l'article
+        doc = nlp(article_content)
+        summary = ' '.join([sent.text for sent in doc.sents][:3])  # Résumer les 3 premières phrases
+
+        # Recherche de l'image et autres informations
         image_url = soup.find('meta', {'property': 'og:image'})  # Recherche de l'image partagée sur les réseaux sociaux
         image_url = image_url['content'] if image_url else 'Image non trouvée'
 
