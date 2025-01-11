@@ -1,11 +1,15 @@
 import requests
 from bs4 import BeautifulSoup
 import spacy
+import re
 import boto3
 from datetime import datetime
 
-# Chargement du modèle SpaCy (version légère)
-nlp = spacy.load('en_core_web_sm')  # Utiliser le modèle léger pour éviter une surcharge mémoire
+# Charger le modèle léger de SpaCy
+nlp = spacy.load('en_core_web_sm')
+
+# Modèle regex pour ignorer les sections non pertinentes
+ignore_pattern = r"\bLatest AI|Amazon|Apps|Biotech & Health|Climate|Cloud Computing|Commerce|Crypto|Enterprise|EVs|Fintech|Fundraising|Gadgets|Gaming|Google|Government & Policy|Hardware|Instagram|Layoffs|Media & Entertainment|Meta|Microsoft|Privacy|Robotics|Security|Social|Space|Startups|TikTok|Transportation|Venture|Events|Startup Battlefield|StrictlyVC|Newsletters|Podcasts|Videos|Partner Content|TechCrunch Brand Studio|Crunchboard|Contact Us\b"
 
 # Configuration DynamoDB
 dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')  # Remplacer par la région de DynamoDB
@@ -27,28 +31,30 @@ def scrape_article(url):
         date = date.get_text(strip=True) if date else 'Date non trouvée'
 
         # Extraire le contenu de l'article
-        article_content = soup.find('div', {'class': 'article-body'})  # Classe spécifique à ajuster selon la structure du site
-        article_content = article_content.get_text(strip=True) if article_content else 'Contenu non trouvé'
+        paragraphs = soup.find_all('p')
+        article_text = ' '.join([para.get_text().strip() for para in paragraphs])
+        article_text = clean_text(article_text)
+
+        # Filtrer les sections non pertinentes avec `ignore_pattern`
+        article_text = re.sub(ignore_pattern, '', article_text, flags=re.IGNORECASE)
+        article_text = re.sub(r'\s+', ' ', article_text).strip()  # Nettoyage des espaces multiples
 
         # Utilisation de SpaCy pour générer un résumé ou une description de l'article
         summary = "Résumé non disponible"
-        if article_content and len(article_content) > 100:  # Vérifier que le contenu est suffisant
-            doc = nlp(article_content)
-            summary = ' '.join([sent.text for sent in doc.sents][:3])  # Résumer les 3 premières phrases
+        if article_text and len(article_text) > 100:  # Vérifier que le contenu est suffisant
+            doc = nlp(article_text)
+            sentences = [sent.text for sent in doc.sents]
+            summary = ' '.join(sentences[:3]) if len(sentences) >= 3 else article_text[:200]  # Résumer les 3 premières phrases
 
         # Recherche de l'image
-        image_url = soup.find('meta', {'property': 'og:image'})  # Recherche de l'image partagée sur les réseaux sociaux
-        image_url = image_url['content'] if image_url else 'Image non trouvée'
+        image_tag = soup.find('meta', {'property': 'og:image'})
+        image_url = image_tag['content'] if image_tag else 'Image non trouvée'
 
         # Formatage de la date pour correspondre à un format lisible
         try:
             date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y-%m-%d') if date != 'Date non trouvée' else date
         except ValueError:
             date = 'Date non trouvée'
-
-        # Gestion des paywalls et articles inaccessibles
-        if "paywall" in response.text.lower():
-            return None  # Si l'article est derrière un paywall, retourner None
 
         # Retourner les données extraites sous forme de dictionnaire
         return {
@@ -82,23 +88,52 @@ def get_article_urls_from_index(url, limit=5):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Rechercher tous les liens d'articles dans la page d'index
-        article_links = []
+        article_links = set()
 
         # Exemple : pour TechCrunch, les liens sont souvent dans des balises <a> avec une classe spécifique
         for link in soup.find_all('a', {'href': True}):
             href = link['href']
             if 'techcrunch.com' in href and '/2025/' in href:  # Assurer de ne récupérer que les articles récents
-                article_links.append(f"https://techcrunch.com{href}" if not href.startswith('http') else href)
-            
+                article_links.add(f"https://techcrunch.com{href}" if not href.startswith('http') else href)
+
             # Limiter à 5 articles
             if len(article_links) >= limit:
                 break
 
-        return article_links
+        return list(article_links)
 
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors de la récupération de l'index {url}: {e}")
         return []
+
+# Fonction pour nettoyer le texte brut
+def clean_text(text):
+    """Nettoie le texte brut."""
+    text = re.sub(r'\s+', ' ', text)  # Remplacer les espaces multiples par un espace unique
+    text = re.sub(r'[^\x00-\x7F]+', ' ', text)  # Supprimer les caractères non-ASCII
+    return text.strip()
+
+# Fonction pour afficher les articles scrappés pour débogage
+def scrap_display_articles():
+    # URL de la page d'index (ex: page d'accueil ou une page d'articles récents)
+    index_url = "https://techcrunch.com/"
+
+    # Obtenir tous les liens d'articles de la page d'index, limité à 5
+    article_urls = get_article_urls_from_index(index_url, limit=5)
+
+    # Scraper chaque article et afficher les résultats
+    for url in article_urls:
+        article = scrape_article(url)
+        if article:
+            print("\n--- Article Scrappé ---")
+            print(f"URL: {article['url']}")
+            print(f"Titre: {article['title']}")
+            print(f"Résumé: {article['summary']}")
+            print(f"Date de publication: {article['datePublication']}")
+            print(f"Image URL: {article['image_url']}")
+            print(f"Source: {article['source']}")
+            print(f"Journal: {article['journal_name']}")
+            print("--- Fin de l'Article ---\n")
 
 # Fonction pour scrapper et stocker les articles
 def scrape_and_store_articles():
@@ -116,4 +151,7 @@ def scrape_and_store_articles():
 
 # Lancer le script
 if __name__ == "__main__":
-    scrape_and_store_articles()
+    # Utiliser la fonction de débogage pour afficher les articles
+    scrap_display_articles()
+    # Si tu veux vraiment les stocker dans DynamoDB, tu peux commenter la ligne ci-dessus et décommenter la ligne suivante
+    # scrape_and_store_articles()
