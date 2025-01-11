@@ -71,7 +71,8 @@ app.post('/api/assos', async (req, res) => {
   }
 });
 
-// Lancer le serveur sur le port 3000
-app.listen(3000, () => {
+// Lancer le serveur sur toutes les interfaces (0.0.0.0) pour être accessible à l'extérieur
+app.listen(3000, '0.0.0.0', () => {
   console.log('Serveur Node.js en écoute sur http://localhost:3000');
 });
+
