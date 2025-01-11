@@ -23,7 +23,9 @@ app.get('/', (req, res) => {
   res.send('Serveur Express fonctionne correctement');
 });
 
-// Route pour récupérer les événements d'une association depuis DynamoDB
+const { unmarshall } = require('@aws-sdk/lib-dynamodb');  // Assurez-vous que ceci est correct
+
+// Exemple d'utilisation de unmarshall
 app.get('/api/assos', async (req, res) => {
   try {
     const params = {
@@ -36,13 +38,14 @@ app.get('/api/assos', async (req, res) => {
     }
 
     // Désérialisation avec unmarshall de la bibliothèque AWS SDK v3
-    const items = data.Items.map((item) => unmarshall(item));
+    const items = data.Items.map((item) => unmarshall(item));  // Assurez-vous que unmarshall est disponible
     res.json(items);
   } catch (error) {
     console.error('Erreur lors de la récupération des événements:', error);
     res.status(500).send('Erreur serveur lors de la récupération des événements');
   }
 });
+
 
 // Route pour ajouter un événement à la table DynamoDB
 app.post('/api/assos', async (req, res) => {
