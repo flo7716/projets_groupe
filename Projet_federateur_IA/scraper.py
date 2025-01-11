@@ -18,7 +18,7 @@ table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 # Fonction pour scrapper un article
 def scrape_article(url):
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()  # Si le statut HTTP est 4xx ou 5xx, cela soulève une exception
 
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -83,7 +83,7 @@ def add_article_to_dynamodb(article_data):
 # Fonction pour récupérer automatiquement les URLs des articles d'une page d'index
 def get_article_urls_from_index(url, limit=5):
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()  # Si le statut HTTP est 4xx ou 5xx, cela soulève une exception
 
         soup = BeautifulSoup(response.content, 'html.parser')
