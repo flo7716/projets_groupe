@@ -3,69 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Articles</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .article {
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .article h2 {
-            font-size: 24px;
-        }
-        .article p {
-            font-size: 16px;
-        }
-        .article img {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-        }
-    </style>
+    <title>Articles IA</title>
 </head>
 <body>
-    <h1>Latest News Articles</h1>
-    <div id="articles-container"></div>
+    <h1>Liste des articles</h1>
+    <ul id="articles-list"></ul>
 
     <script>
         async function fetchArticles() {
-            try {
-                const response = await fetch('/api/articles');
-                const articles = await response.json();
-
-                const container = document.getElementById('articles-container');
-                container.innerHTML = '';
-
-                articles.forEach(article => {
-                    const articleDiv = document.createElement('div');
-                    articleDiv.classList.add('article');
-
-                    const title = document.createElement('h2');
-                    title.textContent = article.title;
-
-                    const date = document.createElement('p');
-                    date.textContent = `Published on: ${article.datePublication}`;
-
-                    const summary = document.createElement('p');
-                    summary.textContent = article.summary;
-
-                    const image = document.createElement('img');
-                    image.src = article.image_url;
-
-                    articleDiv.appendChild(title);
-                    articleDiv.appendChild(date);
-                    articleDiv.appendChild(summary);
-                    articleDiv.appendChild(image);
-
-                    container.appendChild(articleDiv);
-                });
-            } catch (error) {
-                console.error('Error fetching articles:', error);
-            }
+            const response = await fetch('/articles');
+            const articles = await response.json();
+            const list = document.getElementById('articles-list');
+            
+            articles.forEach(article => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${article.title} - ${article.date}`;
+                list.appendChild(listItem);
+            });
         }
 
         fetchArticles();
