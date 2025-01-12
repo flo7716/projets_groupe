@@ -1,15 +1,23 @@
 const express = require('express');
 const { DynamoDBClient, PutItemCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, marshall } = require('@aws-sdk/lib-dynamodb');
-const { unmarshall } = require('@aws-sdk/util-dynamodb'); // Correct import
+const { unmarshall } = require('@aws-sdk/util-dynamodb');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
 
-// Configuration de AWS DynamoDB avec SDK v3 (région mise à jour pour Paris)
-const client = new DynamoDBClient({ region: 'eu-west-3' });  // Région Paris
+// Configuration AWS DynamoDB
+const client = new DynamoDBClient({ region: 'eu-west-3' });
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
 const app = express();
 app.use(bodyParser.json());
+
+// Logger
+const logFilePath = path.join(__dirname, 'logs', 'pig.log');
+function logEvent(message) {
+  fs.appendFileSync(logFilePath, `${new Date().toISOString()} - ${message}\n`);
+}
 
 // Middleware pour gérer les headers CORS
 app.use((req, res, next) => {
@@ -19,44 +27,48 @@ app.use((req, res, next) => {
   next();
 });
 
-// Route de test pour vérifier si le serveur fonctionne
+// Route de test
 app.get('/', (req, res) => {
-  res.send('Serveur Express fonctionne correctement');
+  res.send('Serveur PIG fonctionne correctement');
+  logEvent('Route principale "/" appelée avec succès');
 });
 
-// Exemple d'utilisation de unmarshall
+// Récupérer les associations
 app.get('/api/assos', async (req, res) => {
   try {
-    const params = {
-      TableName: 'assos',  // Table DynamoDB
-    };
-
+    const params = { TableName: 'assos' };
     const data = await dynamoDB.send(new ScanCommand(params));
+
     if (!data.Items) {
-      return res.status(404).send('Aucun événement trouvé');
+      res.status(404).send('Aucune association trouvée');
+      logEvent('Aucune association trouvée lors de la récupération');
+      return;
     }
 
-    // Désérialisation avec unmarshall de la bibliothèque AWS SDK v3
-    const items = data.Items.map((item) => unmarshall(item));  // Assurez-vous que unmarshall est disponible
+    const items = data.Items.map((item) => unmarshall(item));
     res.json(items);
+    logEvent(`Associations récupérées avec succès : ${items.length} éléments`);
   } catch (error) {
-    console.error('Erreur lors de la récupération des événements:', error);
-    res.status(500).send('Erreur serveur lors de la récupération des événements');
+    console.error('Erreur lors de la récupération des associations:', error);
+    res.status(500).send('Erreur serveur lors de la récupération des associations');
+    logEvent('Erreur serveur lors de la récupération des associations');
   }
 });
 
-// Route pour ajouter un événement à la table DynamoDB
+// Ajouter une association
 app.post('/api/assos', async (req, res) => {
   const { nomAsso, description, date } = req.body;
 
   if (!nomAsso || !description || !date) {
-    return res.status(400).send('Les informations de l\'événement sont manquantes');
+    res.status(400).send('Informations manquantes');
+    logEvent('Tentative d\'ajout avec informations manquantes');
+    return;
   }
 
   const params = {
-    TableName: 'assos',  // Table DynamoDB
+    TableName: 'assos',
     Item: marshall({
-      idEvent: `${Date.now()}`,  // ID unique basé sur le timestamp
+      idEvent: `${Date.now()}`,
       nomAsso,
       description,
       date,
@@ -65,14 +77,18 @@ app.post('/api/assos', async (req, res) => {
 
   try {
     await dynamoDB.send(new PutItemCommand(params));
-    res.status(201).send('Événement ajouté avec succès');
+    res.status(201).send('Association ajoutée avec succès');
+    logEvent(`Association ajoutée : ${nomAsso}`);
   } catch (error) {
-    console.error('Erreur lors de l\'ajout de l\'événement:', error);
-    res.status(500).send('Erreur serveur lors de l\'ajout de l\'événement');
+    console.error('Erreur lors de l\'ajout de l\'association:', error);
+    res.status(500).send('Erreur serveur lors de l\'ajout de l\'association');
+    logEvent('Erreur serveur lors de l\'ajout de l\'association');
   }
 });
 
-// Lancer le serveur sur toutes les interfaces (0.0.0.0) pour être accessible à l'extérieur
-app.listen(3000, '0.0.0.0', () => {
-  console.log('Serveur Node.js en écoute sur http://localhost:3000');
+// Lancer le serveur
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Serveur PIG en écoute sur http://localhost:${PORT}`);
+  logEvent(`Serveur démarré sur le port ${PORT}`);
 });
