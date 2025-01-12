@@ -1,0 +1,9 @@
+# Ignorer l'environnement virtuel
+mon_env/
+
+# Ignorer les fichiers de cache Python
+__pycache__/
+*.pyc
+
+# Ignorer les fichiers Docker
+*.dockerfile
