@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 import sys
 import os
+import requests
 
 # Ajouter le chemin du projet fédérateur IA à sys.path pour pouvoir l'importer
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Projet_federateur_IA')))
@@ -13,6 +14,14 @@ app = Flask(__name__)
 def home():
     # Page d'accueil
     return render_template('index.html')
+
+@app.route('/assos')
+def afficher_assos():
+    # Appel à l'API PIG
+    response = requests.get('http://localhost:3000/api/assos')
+    data = response.json() if response.status_code == 200 else []
+    return render_template('assos.html', assos=data)
+
 
 @app.route('/articles')
 def articles():

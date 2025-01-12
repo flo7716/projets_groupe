@@ -1,15 +1,30 @@
-// Script de scraping avec spaCy (exemple en Python)
-const { exec } = require('child_process');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
-// Commande pour exécuter un script Python de scraping
-exec('python3 scraper.py', (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Erreur lors de l'exécution du scraper: ${error.message}`);
-    return;
-  }
-  if (stderr) {
-    console.error(`stderr: ${stderr}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-});
+// Fonction pour scraper un article
+async function scrapeArticle(url) {
+    try {
+        const { data } = await axios.get(url);
+        const $ = cheerio.load(data);
+
+        // Extraction des informations
+        const title = $('h1').text().trim() || 'Titre non trouvé';
+        const date = $('time').text().trim() || 'Date non trouvée';
+        const paragraphs = $('p').map((i, el) => $(el).text().trim()).get();
+        const articleText = paragraphs.join(' ');
+
+        return {
+            url,
+            title,
+            date,
+            articleText
+        };
+    } catch (error) {
+        console.error(`Erreur lors de la récupération de l'article: ${url}`, error);
+        return null;
+    }
+}
+
+// Exemple d'utilisation
+const articleUrl = 'https://www.computerworld.com/';
+scrapeArticle(articleUrl).then(data => console.log(data));
