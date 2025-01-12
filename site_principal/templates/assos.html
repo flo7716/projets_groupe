@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Liste des Associations</h2>
+<ul>
+    {% for association in associations %}
+    <li>
+        <a href="/association/{{ association.id }}">{{ association.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

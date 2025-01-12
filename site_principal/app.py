@@ -1,33 +1,48 @@
 from flask import Flask, render_template, jsonify
-import sys
-import os
-import requests
-
-# Ajouter le chemin du projet fédérateur IA à sys.path pour pouvoir l'importer
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Projet_federateur_IA')))
-
-from scraper import scrape_articles  # Importer le script de scraping depuis 'Projet_federateur_IA'
+import boto3
+from botocore.exceptions import ClientError
 
 app = Flask(__name__)
 
+# Initialisation du client DynamoDB
+dynamodb = boto3.resource('dynamodb', region_name='us-west-2')  # Remplace par la région AWS appropriée
+table = dynamodb.Table('associations')  # Remplace par le nom de ta table DynamoDB
+
+# Route pour la page d'accueil (liste des associations)
 @app.route('/')
 def home():
-    # Page d'accueil
-    return render_template('index.html')
+    try:
+        # Récupérer toutes les associations depuis DynamoDB
+        response = table.scan()
+        associations = response['Items']
+        return render_template('assos.html', associations=associations)
+    except ClientError as e:
+        return jsonify({"error": f"Erreur DynamoDB: {e.response['Error']['Message']}"})
 
-@app.route('/assos')
-def afficher_assos():
-    # Appel à l'API PIG
-    response = requests.get('http://localhost:3000/api/assos')
-    data = response.json() if response.status_code == 200 else []
-    return render_template('assos.html', assos=data)
+# Route pour afficher les détails d'une association
+@app.route('/association/<int:id>')
+def details(id):
+    try:
+        # Récupérer une association spécifique par son ID
+        response = table.get_item(Key={'id': id})
+        if 'Item' in response:
+            association = response['Item']
+            return render_template('details.html', association=association)
+        else:
+            return jsonify({"error": "Association non trouvée"})
+    except ClientError as e:
+        return jsonify({"error": f"Erreur DynamoDB: {e.response['Error']['Message']}"})
 
-
-@app.route('/articles')
-def articles():
-    # Retourner les articles sous forme de JSON (récupérés par scraping depuis Projet_federateur_IA)
-    articles = scrape_articles()  # Appel de la fonction de scraping importée
-    return jsonify(articles)
+# Route pour obtenir les données des associations au format JSON (API)
+@app.route('/api/associations')
+def api_associations():
+    try:
+        # Récupérer toutes les associations au format JSON
+        response = table.scan()
+        associations = response['Items']
+        return jsonify(associations)
+    except ClientError as e:
+        return jsonify({"error": f"Erreur DynamoDB: {e.response['Error']['Message']}"})
 
 if __name__ == '__main__':
     app.run(debug=True)
