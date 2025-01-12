@@ -1,23 +1,27 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './components/Home';
-import PIGPage from './components/PIGPage';
-import ProjetFederateurIA from './components/ProjetFederateurIA';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import './styles.css';
 
 function App() {
+  const [associations, setAssociations] = useState([]);
+
+  useEffect(() => {
+    // Récupérer les données de l'API Flask
+    fetch('http://localhost:5000/api/assos')
+      .then(response => response.json())
+      .then(data => setAssociations(data));
+  }, []);
+
   return (
-    <Router>
-      <div className="App">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/PIG" element={<PIGPage />} />
-          <Route path="/ProjetFederateurIA" element={<ProjetFederateurIA />} />
-        </Routes>
-      </div>
-    </Router>
+    <div className="App">
+      <h1>Liste des Associations</h1>
+      <ul>
+        {associations.map(assoc => (
+          <li key={assoc.assoc_id}>
+            <a href={`/assos/${assoc.assoc_id}`}>{assoc.title}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
