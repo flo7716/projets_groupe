@@ -1,51 +1,58 @@
 const express = require('express');
+const AWS = require('aws-sdk');
 const bodyParser = require('body-parser');
-const { DynamoDB } = require('aws-sdk');
+const { fetchArticles } = require('./scraper');  // Import du scraper
 
 const app = express();
-const port = 3000;
+const port = 5001;
 
-// Configuration de DynamoDB
-const dynamoDb = new DynamoDB.DocumentClient();
-const tableName = 'articles';
-
-// Middleware pour parser le JSON
-app.use(bodyParser.json());
-
-// Route pour récupérer tous les articles
-app.get('/articles', async (req, res) => {
-    try {
-        const params = {
-            TableName: tableName
-        };
-
-        const result = await dynamoDb.scan(params).promise();
-        res.json(result.Items);
-    } catch (error) {
-        console.error('Erreur lors de la récupération des articles:', error);
-        res.status(500).send('Erreur serveur');
-    }
+// Configurer AWS DynamoDB
+AWS.config.update({
+  region: 'us-east-1',  // Région où tu as configuré DynamoDB
 });
 
-// Route pour ajouter un article
-app.post('/articles', async (req, res) => {
-    const article = req.body;
-    
-    const params = {
-        TableName: tableName,
-        Item: article
-    };
+const docClient = new AWS.DynamoDB.DocumentClient();
 
-    try {
-        await dynamoDb.put(params).promise();
-        res.status(201).send('Article ajouté');
-    } catch (error) {
-        console.error('Erreur lors de l\'ajout de l\'article:', error);
-        res.status(500).send('Erreur serveur');
-    }
+app.use(bodyParser.json());  // Permet d'analyser les requêtes JSON
+
+// Endpoint pour récupérer les articles
+app.get('/api/articles', async (req, res) => {
+  try {
+    const articles = await fetchArticles();
+    res.json({ message: "Articles récupérés avec succès!", articles });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur lors de la récupération des articles.', error: err });
+  }
 });
 
-// Lancer le serveur
+// Endpoint pour ajouter un article
+app.post('/api/articles', async (req, res) => {
+  const { title, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ message: 'Le titre et le contenu de l\'article sont requis.' });
+  }
+
+  const params = {
+    TableName: 'Articles',  // Table DynamoDB pour stocker les articles
+    Item: {
+      id: AWS.util.uuid.v4(),  // Génère un ID unique pour chaque article
+      title: title,
+      content: content,
+      createdAt: new Date().toISOString(),
+    },
+  };
+
+  try {
+    // Insérer l'article dans DynamoDB
+    await docClient.put(params).promise();
+    res.status(201).json({ message: 'Article ajouté avec succès!', article: params.Item });
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'article:', error);
+    res.status(500).json({ message: 'Erreur lors de l\'ajout de l\'article.', error });
+  }
+});
+
 app.listen(port, () => {
-    console.log(`Serveur backend démarré sur http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });

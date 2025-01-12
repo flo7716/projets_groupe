@@ -15,8 +15,14 @@ Retourne la liste de toutes les associations stockées dans DynamoDB.
 ]
 
 
----
+## Endpoints des Articles
 
-### Résumé :
+### GET /api/articles
+Retourne tous les articles.
 
-Les scripts et la documentation ont été réécrits pour utiliser AWS DynamoDB dans l'application Flask. La structure de l'application reste inchangée, et les requêtes vers la base de données ont été adaptées pour utiliser DynamoDB via le SDK **Boto3**.
+#### Réponse
+```json
+{
+  "message": "Articles récupérés avec succès!",
+  "articles": [ ... ]
+}
