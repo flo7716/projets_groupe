@@ -5,6 +5,15 @@ import re
 import boto3
 from datetime import datetime
 
+
+# Using spacy.load().
+import spacy
+nlp = spacy.load("en_core_web_sm")
+
+# Importing as module.
+import en_core_web_sm
+nlp = en_core_web_sm.load()
+
 # Charger le modèle léger de SpaCy
 nlp = spacy.load('en_core_web_sm')
 

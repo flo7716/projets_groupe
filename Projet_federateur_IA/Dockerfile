@@ -9,6 +9,7 @@ COPY . /app
 
 # Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install https://huggingface.co/spacy/en_core_web_sm/resolve/main/en_core_web_sm-any-py3-none-any.whl
 
 # Exposer le port si nécessaire
 EXPOSE 5000
