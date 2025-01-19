@@ -17,9 +17,6 @@ nlp = en_core_web_sm.load()
 # Charger le modèle léger de SpaCy
 nlp = spacy.load('en_core_web_sm')
 
-# Modèle regex pour ignorer les sections non pertinentes
-ignore_pattern = r"\bLatest AI|Amazon|Apps|Biotech & Health|Climate|Cloud Computing|Commerce|Crypto|Enterprise|EVs|Fintech|Fundraising|Gadgets|Gaming|Google|Government & Policy|Hardware|Instagram|Layoffs|Media & Entertainment|Meta|Microsoft|Privacy|Robotics|Security|Social|Space|Startups|TikTok|Transportation|Venture|Events|Startup Battlefield|StrictlyVC|Newsletters|Podcasts|Videos|Partner Content|Computerworld Brand Studio|Crunchboard|Contact Us\b"
-
 # Configuration DynamoDB
 dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')  # Remplacer par la région de DynamoDB
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
@@ -43,10 +40,6 @@ def scrape_article(url):
         paragraphs = soup.find_all('p')
         article_text = ' '.join([para.get_text().strip() for para in paragraphs])
         article_text = clean_text(article_text)
-
-        # Filtrer les sections non pertinentes avec `ignore_pattern`
-        article_text = re.sub(ignore_pattern, '', article_text, flags=re.IGNORECASE)
-        article_text = re.sub(r'\s+', ' ', article_text).strip()  # Nettoyage des espaces multiples
 
         # Utilisation de SpaCy pour générer un résumé ou une description de l'article
         summary = "Résumé non disponible"
