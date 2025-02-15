@@ -46,7 +46,7 @@ def scrape_article(url):
         if article_text and len(article_text) > 100:  # Vérifier que le contenu est suffisant
             doc = nlp(article_text)
             sentences = [sent.text for sent in doc.sents]
-            summary = ' '.join(sentences[:3]) if len(sentences) >= 3 else article_text[:200]  # Résumer les 3 premières phrases
+            summary = ' '.join(sentences[:10]) if len(sentences) >= 10 else article_text[:200]  # Résumer les 10 premières phrases
 
         # Recherche de l'image
         image_tag = soup.find('meta', {'property': 'og:image'})
