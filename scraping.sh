@@ -1,6 +1,6 @@
 #!/bin/bash
 ENV_LOCATION=/home/ubuntu/env/bin
-SCRIPT_LOCATION=/home/ubuntu/projets_groupe/Projet_Federateur_IA
+SCRIPT_LOCATION=/home/ubuntu/projets_groupe/Projet_federateur_IA
 
 
 #Activation environnement Python
