@@ -20,7 +20,7 @@ table = dynamodb.Table('articles')
 # Route pour la page d'accueil
 @app.route('/')
 def index():
-    return render_template('templates/index.html')
+    return render_template('index.html')
 
 # Route pour afficher tous les articles
 @app.route('/articles', methods=['GET'])
@@ -67,3 +67,4 @@ def add_article():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
+    index()
