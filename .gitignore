@@ -8,3 +8,7 @@ mon_env/
 # Ignore IDE files
 .idea/
 .vscode/
+
+
+# Ignore env file on Projet_federateur_IA
+.env

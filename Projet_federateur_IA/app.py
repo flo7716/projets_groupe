@@ -1,10 +1,20 @@
 from flask import Flask, render_template, request, jsonify
 import boto3
+from dotenv import load_dotenv
+import os
+
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
 
 app = Flask(__name__)
 
-# Configuration DynamoDB
-dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')
+# Configuration DynamoDB avec les credentials chargées depuis .env
+dynamodb = boto3.resource(
+    'dynamodb',
+    region_name=os.getenv('AWS_REGION'),
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+)
 table = dynamodb.Table('articles')
 
 # Route pour la page d'accueil
@@ -30,7 +40,7 @@ def search_articles():
         response = table.scan()
         articles = response.get('Items', [])
         filtered_articles = [
-            article for article in articles 
+            article for article in articles
             if keyword in article['title'].lower() or keyword in article['summary'].lower()
         ]
         return jsonify(filtered_articles)
@@ -57,4 +67,3 @@ def add_article():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
-
