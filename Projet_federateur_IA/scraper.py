@@ -4,6 +4,7 @@ import spacy
 import re
 import boto3
 from datetime import datetime
+import os
 
 
 # Using spacy.load().
@@ -18,7 +19,12 @@ nlp = en_core_web_sm.load()
 nlp = spacy.load('en_core_web_sm')
 
 # Configuration DynamoDB
-dynamodb = boto3.resource('dynamodb', region_name='eu-west-3')  # Remplacer par la région de DynamoDB
+dynamodb = boto3.resource(
+    'dynamodb',
+    region_name=os.getenv('AWS_REGION'),
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+)
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
 # Fonction pour scrapper un article
