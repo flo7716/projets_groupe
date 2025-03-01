@@ -7,7 +7,6 @@ sudo apt-get update
 sudo apt-get upgrade -y
 
 
-#check for updates into Git repository
-cd projets_groupe
+#check for updates into Git repository on this folder
 git pull
 cd ..
