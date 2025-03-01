@@ -31,6 +31,16 @@ def get_articles():
         return jsonify(articles)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# Route pour afficher un article spécifique
+@app.route('/article/<string:source>', methods=['GET'])
+def get_article(source):
+    try:
+        response = table.get_item(Key={'source': source})
+        article = response.get('Item', {})
+        return jsonify(article)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Route pour rechercher des articles par mot-clé
 @app.route('/search', methods=['GET'])
