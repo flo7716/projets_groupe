@@ -64,12 +64,13 @@ def scrape_article(url):
         except ValueError:
             date = 'Date non trouvée'
 
-        # Retourner les données extraites sous forme de dictionnaire
+        # Retourner les données extraites sous forme de dictionnaire (l'id doit etre exploitable pour l'API et la date de publication correspond à la date d'ajout sur dynamoDB)
         return {
+            'article_id': hash(url),  # Utilisation de l'URL comme ID
             'url': url,
             'title': title,
             'summary': summary,
-            'datePublication': date,
+            'datePublication': datetime.now().isoformat(),
             'image_url': image_url,
             'source': url,
             'journal_name': 'ComputerWorld',  # Nom du journal mis à jour

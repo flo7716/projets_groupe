@@ -1,28 +1,18 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, jsonify, request
 import boto3
-from dotenv import load_dotenv
 import os
-
-# Charger les variables d'environnement depuis le fichier .env
-load_dotenv()
 
 app = Flask(__name__)
 
-# Configuration DynamoDB avec les credentials chargées depuis .env
+# Configuration DynamoDB
 dynamodb = boto3.resource(
     'dynamodb',
     region_name=os.getenv('AWS_REGION'),
     aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
     aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
 )
-table = dynamodb.Table('articles')
+table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
-# Route pour la page d'accueil
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-# Route pour afficher tous les articles
 @app.route('/articles', methods=['GET'])
 def get_articles():
     try:
@@ -30,51 +20,35 @@ def get_articles():
         articles = response.get('Items', [])
         return jsonify(articles)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-# Route pour afficher un article spécifique
-@app.route('/article/<string:source>', methods=['GET'])
-def get_article(source):
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/articles', methods=['POST'])
+def add_article():
     try:
-        response = table.get_item(Key={'source': source})
-        article = response.get('Item', {})
+        article_data = request.json
+        table.put_item(Item=article_data)
+        return jsonify({'message': 'Article added successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/articles/<string:article_id>', methods=['GET'])
+def get_article(article_id):
+    try:
+        response = table.get_item(Key={'article_id': article_id})
+        article = response.get('Item')
+        if not article:
+            return jsonify({'error': 'Article not found'}), 404
         return jsonify(article)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-# Route pour rechercher des articles par mot-clé
-@app.route('/search', methods=['GET'])
-def search_articles():
-    keyword = request.args.get('keyword', '').lower()
+@app.route('/articles/<string:article_id>', methods=['DELETE'])
+def delete_article(article_id):
     try:
-        response = table.scan()
-        articles = response.get('Items', [])
-        filtered_articles = [
-            article for article in articles
-            if keyword in article['title'].lower() or keyword in article['summary'].lower()
-        ]
-        return jsonify(filtered_articles)
+        response = table.delete_item(Key={'article_id': article_id})
+        return jsonify({'message': 'Article deleted successfully'})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-# Route pour ajouter un nouvel article
-@app.route('/add_article', methods=['POST'])
-def add_article():
-    data = request.json
-    try:
-        table.put_item(Item={
-            'source': data['source'],
-            'datePublication': data['datePublication'],
-            'image_url': data['image_url'],
-            'journal_name': data['journal_name'],
-            'summary': data['summary'],
-            'title': data['title'],
-            'url': data['url']
-        })
-        return jsonify({"message": "Article added successfully!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
-    index()
+if __name__ == '__main__':
+    app.run(debug=True)
