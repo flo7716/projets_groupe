@@ -5,18 +5,13 @@ import re
 import boto3
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+import hashlib
 
+load_dotenv()
 
 # Using spacy.load().
-import spacy
 nlp = spacy.load("en_core_web_sm")
-
-# Importing as module.
-import en_core_web_sm
-nlp = en_core_web_sm.load()
-
-# Charger le modèle léger de SpaCy
-nlp = spacy.load('en_core_web_sm')
 
 # Configuration DynamoDB
 dynamodb = boto3.resource(
@@ -64,9 +59,12 @@ def scrape_article(url):
         except ValueError:
             date = 'Date non trouvée'
 
-        # Retourner les données extraites sous forme de dictionnaire (l'id doit etre exploitable pour l'API et la date de publication correspond à la date d'ajout sur dynamoDB)
-        return {
-            'article_id': hash(url),  # Utilisation de l'URL comme ID
+        # Générer un ID unique pour l'article en utilisant un hash de l'URL
+        article_id = hashlib.md5(url.encode()).hexdigest()
+
+        # Retourner les données extraites sous forme de dictionnaire
+        article_data = {
+            'article_id': article_id,
             'url': url,
             'title': title,
             'summary': summary,
@@ -75,6 +73,9 @@ def scrape_article(url):
             'source': url,
             'journal_name': 'ComputerWorld',  # Nom du journal mis à jour
         }
+
+        print(f"Article data: {article_data}")  # Debugging information
+        return article_data
 
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors de la récupération de {url}: {e}")
