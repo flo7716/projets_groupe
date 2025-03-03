@@ -52,14 +52,19 @@ def get_article(article_id):
 @app.route('/articles/<string:article_id>/detail', methods=['GET'])
 def article_detail(article_id):
     try:
+        print(f"Fetching article with ID: {article_id}")  # Debugging information
         response = table.get_item(Key={'article_id': article_id})  # Use the correct key name
         article = response.get('Item')
         if not article:
+            print(f"Article with ID {article_id} not found")  # Debugging information
             return render_template('404.html'), 404
+        print(f"Article found: {article}")  # Debugging information
         return render_template('article_detail.html', article=article)
     except Exception as e:
+        print(f"Error fetching article: {str(e)}")  # Debugging information
         return render_template('500.html', error=str(e)), 500
-
+    
+    
 @app.route('/articles/<string:article_id>', methods=['DELETE'])
 def delete_article(article_id):
     try:
