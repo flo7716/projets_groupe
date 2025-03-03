@@ -22,6 +22,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: left; /* Align content to the left */
         }
         .article-title {
             font-size: 24px;
@@ -33,7 +34,19 @@
         }
         .article-content {
             margin-top: 20px;
-            text-align: left;
+        }
+        .article-summary {
+            font-style: italic;
+            color: #555;
+        }
+        .article-image {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        .article-source {
+            margin-top: 10px;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -41,9 +54,22 @@
     <div id="article-container">
         <h1 class="article-title">{{ article.title }}</h1>
         <p class="article-date">{{ article.date }}</p>
+
+        {% if article.summary %}
+        <p class="article-summary">{{ article.summary }}</p>
+        {% endif %}
+
+        {% if article.image_url %}
+        <img src="{{ article.image_url }}" alt="Article Image" class="article-image">
+        {% endif %}
+
         <div class="article-content">
             {{ article.content }}
         </div>
+
+        {% if article.source_url %}
+        <p class="article-source">Source: <a href="{{ article.source }}" target="_blank">Read more</a></p>
+        {% endif %}
     </div>
 </body>
 </html>
