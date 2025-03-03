@@ -52,7 +52,7 @@ def get_article(article_id):
 @app.route('/articles/<string:article_id>/detail', methods=['GET'])
 def article_detail(article_id):
     try:
-        response = table.get_item(Key={'article_id': article_id})
+        response = table.get_item(Key={'id': article_id})  # Use the correct key name
         article = response.get('Item')
         if not article:
             return render_template('404.html'), 404
