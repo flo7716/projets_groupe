@@ -18,7 +18,7 @@ table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
 @app.route('/')
 def home():
-    return "Welcome to the Articles API!"
+    return render_template('index.html')
 
 @app.route('/articles', methods=['GET'])
 def get_articles():
