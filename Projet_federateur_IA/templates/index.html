@@ -68,22 +68,31 @@
         async function fetchArticles() {
             try {
                 const response = await fetch('/articles');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
                 const articles = await response.json();
                 const list = document.getElementById('articles-list');
                 const loadingText = document.getElementById('loading');
 
                 loadingText.style.display = 'none';
 
+                if (articles.length === 0) {
+                    loadingText.textContent = 'No articles found.';
+                    loadingText.style.display = 'block';
+                    return;
+                }
+
                 articles.forEach(article => {
                     const listItem = document.createElement('li');
 
                     const titleSpan = document.createElement('span');
                     titleSpan.classList.add('article-title');
-                    titleSpan.textContent = article.title;
+                    titleSpan.textContent = article.title || 'No title';
 
                     const dateSpan = document.createElement('span');
                     dateSpan.classList.add('article-date');
-                    dateSpan.textContent = article.date;
+                    dateSpan.textContent = article.date || 'No date';
 
                     listItem.appendChild(titleSpan);
                     listItem.appendChild(dateSpan);

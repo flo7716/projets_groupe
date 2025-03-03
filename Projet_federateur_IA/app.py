@@ -16,6 +16,10 @@ dynamodb = boto3.resource(
 )
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
+@app.route('/')
+def home():
+    return "Welcome to the Articles API!"
+
 @app.route('/articles', methods=['GET'])
 def get_articles():
     try:
