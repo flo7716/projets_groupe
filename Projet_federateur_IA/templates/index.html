@@ -86,15 +86,16 @@
                 articles.forEach(article => {
                     const listItem = document.createElement('li');
 
-                    const titleSpan = document.createElement('span');
-                    titleSpan.classList.add('article-title');
-                    titleSpan.textContent = article.title || 'No title';
+                    const titleLink = document.createElement('a');
+                    titleLink.classList.add('article-title');
+                    titleLink.textContent = article.title || 'No title';
+                    titleLink.href = `/articles/${article.article_id}/detail`;
 
                     const dateSpan = document.createElement('span');
                     dateSpan.classList.add('article-date');
                     dateSpan.textContent = article.date || 'No date';
 
-                    listItem.appendChild(titleSpan);
+                    listItem.appendChild(titleLink);
                     listItem.appendChild(dateSpan);
                     list.appendChild(listItem);
                 });
