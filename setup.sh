@@ -29,6 +29,7 @@ deactivate
 sudo apt-get install -y git
 
 # Clone the repository (if not already cloned)
-# git clone <repository_url> /home/ubuntu/projets_groupe
+git clone https://github.com/flo7716/projets_groupe.git /home/ubuntu/projets_groupe
+
 
 echo "Setup complete. All dependencies have been installed."
