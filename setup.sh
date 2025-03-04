@@ -8,7 +8,7 @@ sudo apt-get upgrade -y
 sudo apt-get install -y python3 python3-pip
 
 # Install virtualenv
-sudo pip3 install virtualenv
+sudo apt-get install virtualenv
 
 # Create a virtual environment
 virtualenv /home/ubuntu/env
