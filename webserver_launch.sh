@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ENV_LOCATION=$(pwd)/env/bin
-SCRIPT_LOCATION=$(pwd)/projets_groupe/Projet_federateur_IA
+ENV_LOCATION=$HOME_DIR/env/bin
+SCRIPT_LOCATION=$HOME_DIR/Documents/projets_groupe/Projet_federateur_IA
 
 #activation environnement virtuel
 source $ENV_LOCATION/activate

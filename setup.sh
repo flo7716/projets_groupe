@@ -1,5 +1,8 @@
 #!/bin/bash
 
+HOME_DIR=/home/$(whoami)
+
+
 # Update and upgrade the system
 sudo apt-get update
 sudo apt-get upgrade -y
@@ -11,10 +14,10 @@ sudo apt-get install -y python3 python3-pip
 sudo apt-get install virtualenv
 
 # Create a virtual environment
-virtualenv $(pwd)/env
+virtualenv $HOME_DIR/env
 
 # Activate the virtual environment
-source $(pwd)/env/bin/activate
+source $HOME_DIR/env/bin/activate
 
 # Install required Python packages
 pip install boto3 flask python-dotenv requests beautifulsoup4 spacy
@@ -30,7 +33,7 @@ sudo apt-get install -y git
 
 # Clone the repository (if not already cloned)
 if [ ! -d "projets_groupe" ]; then
-    git clone https://github.com/flo7716/projets_groupe.git 
+    git clone https://github.com/flo7716/projets_groupe.git $HOME_DIR/Documents
 fi
 
 
