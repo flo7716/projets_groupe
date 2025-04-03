@@ -16,9 +16,9 @@ nlp = spacy.load("en_core_web_sm")
 # Configuration DynamoDB
 dynamodb = boto3.resource(
     'dynamodb',
-    region_name=os.getenv('AWS_REGION'),
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+    region_name="eu-west-3",
+    aws_access_key_id="AKIAZPPF76IFIMCT6M6I",
+    aws_secret_access_key="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"
 )
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
