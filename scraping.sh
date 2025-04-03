@@ -4,7 +4,7 @@ HOME_DIR=/home/$(whoami)
 
 # Define environment and script locations
 ENV_LOCATION="$HOME_DIR/env/bin"
-SCRIPT_LOCATION="$HOME_DIR/Documents/projets_groupe/Projet_federateur_IA"
+SCRIPT_LOCATION="$HOME_DIR/projets_groupe/Projet_federateur_IA"
 
 # Activate the Python virtual environment
 if [ ! -f "$ENV_LOCATION/activate" ]; then
