@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x  # Enable debugging
+
 
 # Define environment and script locations
 ENV_LOCATION="/home/ubuntu/env/bin"
@@ -12,19 +12,13 @@ if [ ! -f "$ENV_LOCATION/activate" ]; then
 fi
 source "$ENV_LOCATION/activate"
 
-# Execute the Python scraping script and redirect errors to a log file
+# Execute the Python scraping script
 echo "Execution du script Python de scraping"
 if [ ! -f "$SCRIPT_LOCATION/scraper.py" ]; then
     echo "Erreur: Le script Python de scraping est introuvable."
-    exit 1
 fi
 
-python "$SCRIPT_LOCATION/scraper.py" > /home/ubuntu/scraping.log 2>&1
+python "$SCRIPT_LOCATION/scraper.py"
 
-# Check the exit code of the Python script
-if [ $? -ne 0 ]; then
-    echo "Erreur lors de l'execution du script Python de scraping. Voir le log pour plus de details."
-    exit 1
-fi
 
 echo "Script termine"
