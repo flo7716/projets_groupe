@@ -11,10 +11,10 @@ sudo apt-get install -y python3 python3-pip
 sudo apt-get install virtualenv
 
 # Create a virtual environment
-virtualenv /home/ubuntu/env
+virtualenv $(pwd)/env
 
 # Activate the virtual environment
-source /home/ubuntu/env/bin/activate
+source $(pwd)/env/bin/activate
 
 # Install required Python packages
 pip install boto3 flask python-dotenv requests beautifulsoup4 spacy
@@ -29,7 +29,7 @@ deactivate
 sudo apt-get install -y git
 
 # Clone the repository (if not already cloned)
-git clone https://github.com/flo7716/projets_groupe.git /home/ubuntu/projets_groupe
+git clone https://github.com/flo7716/projets_groupe.git $(pwd)/projets_groupe
 
 
 echo "Setup complete. All dependencies have been installed."
