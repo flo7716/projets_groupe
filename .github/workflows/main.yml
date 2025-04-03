@@ -1,0 +1,26 @@
+name: Sync GitHub to GitLab
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
+
+    - name: Set up Git
+      run: |
+        git config --global user.name 'flo7716'
+        git config --global user.email 'florian.andre.77@gmail.com'
+        git remote add gitlab https://florian.andre.77:${{ secrets.GITLAB_TOKEN }}@gitlab.com/florian.andre.77/projets_groupe.git
+
+    - name: Push to GitLab
+      run: |
+        git push gitlab main
