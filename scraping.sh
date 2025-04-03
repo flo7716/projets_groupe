@@ -2,8 +2,8 @@
 
 
 # Define environment and script locations
-ENV_LOCATION="/home/ubuntu/env/bin"
-SCRIPT_LOCATION="/home/ubuntu/projets_groupe/Projet_federateur_IA"
+ENV_LOCATION="$(pwd)/env/bin"
+SCRIPT_LOCATION="$(pwd)/projets_groupe/Projet_federateur_IA"
 
 # Activate the Python virtual environment
 if [ ! -f "$ENV_LOCATION/activate" ]; then
