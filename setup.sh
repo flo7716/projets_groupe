@@ -8,10 +8,10 @@ sudo apt-get update
 sudo apt-get upgrade -y
 
 # Install Python and pip
-sudo apt-get install -y python3 python3-pip
+sudo apt-get install -y python3 python3-pip cron
 
 # Install virtualenv
-sudo apt-get install virtualenv
+sudo apt-get install -y virtualenv
 
 # Create a virtual environment
 virtualenv $HOME_DIR/env
@@ -37,6 +37,10 @@ if [ ! -d "$HOME_DIR/projets_groupe" ]; then
     git clone https://github.com/flo7716/projets_groupe 
 fi
 
+
+# Automate scripts execution on projets_groupe with cron (scraping.sh will be run once a day-at 2:00 AM)
+echo "Automating scripts execution on projets_groupe..."
+echo "0 2 * * * cd $HOME_DIR/projets_groupe && ./scraping.sh" | crontab -
 
 
 echo "Setup complete. All dependencies have been installed."

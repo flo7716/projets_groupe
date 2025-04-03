@@ -1,5 +1,5 @@
 #!/bin/bash
-
+HOME_DIR=/home/$(whoami)
 ENV_LOCATION=$HOME_DIR/env/bin
 SCRIPT_LOCATION=$HOME_DIR/projets_groupe/Projet_federateur_IA
 
