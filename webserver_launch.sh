@@ -7,6 +7,6 @@ SCRIPT_LOCATION=$HOME_DIR/Documents/projets_groupe/Projet_federateur_IA
 source $ENV_LOCATION/activate
 
 # lancement serveur web
-cd $SCRIPT_LOCATION
-python3 app.py
+
+python3 $SCRIPT_LOCATION/app.py
 
