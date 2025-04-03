@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Configuration DynamoDB
 dynamodb = boto3.resource(
     'dynamodb',
-    region_name=os.getenv('REGION_NAME'),  # Utiliser la variable d'environnement ou une valeur par défaut
+    region_name=os.getenv('AWS_REGION'),  # Utiliser la variable d'environnement ou une valeur par défaut
     aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),  # Utiliser la variable d'environnement ou une valeur par défaut
     aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')  # Utiliser la variable d'environnement ou une valeur par défaut
 )
