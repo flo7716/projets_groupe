@@ -10,9 +10,9 @@ app = Flask(__name__)
 # Configuration DynamoDB
 dynamodb = boto3.resource(
     'dynamodb',
-    region_name="eu-west-3",
-    aws_access_key_id="AKIAZPPF76IFIMCT6M6I",
-    aws_secret_access_key="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"
+    region_name=os.getenv('REGION_NAME'),  # Utiliser la variable d'environnement ou une valeur par défaut
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),  # Utiliser la variable d'environnement ou une valeur par défaut
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')  # Utiliser la variable d'environnement ou une valeur par défaut
 )
 table = dynamodb.Table('articles')  # Assure-toi que la table 'articles' existe
 
