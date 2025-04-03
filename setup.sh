@@ -32,8 +32,9 @@ deactivate
 sudo apt-get install -y git
 
 # Clone the repository (if not already cloned)
+cd $HOME_DIR/Documents
 if [ ! -d "$HOME_DIR/Documents/projets_groupe" ]; then
-    git clone https://github.com/flo7716/projets_groupe $HOME_DIR/Documents/
+    git clone https://github.com/flo7716/projets_groupe 
 fi
 
 
