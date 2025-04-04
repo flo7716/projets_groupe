@@ -38,9 +38,4 @@ if [ ! -d "$HOME_DIR/projets_groupe" ]; then
 fi
 
 
-# Automate scripts execution on projets_groupe with cron (scraping.sh will be run once a day-at 2:00 AM)
-echo "Automating scripts execution on projets_groupe..."
-echo "0 2 * * * cd $HOME_DIR/projets_groupe && ./scraping.sh" | crontab -
-
-
 echo "Setup complete. All dependencies have been installed."
