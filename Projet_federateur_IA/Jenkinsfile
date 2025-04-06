@@ -13,8 +13,8 @@ pipeline {
                     // Script distant mis dans un fichier temporaire
                     writeFile file: 'run_scripts.sh', text: '''
                         echo "==> Lancement du script de vérification de mise à jour"
-                        chmod +x /home/ubuntu/projets_groupe/update_checker.sh
-                        /home/ubuntu/projets_groupe/update_checker.sh
+                        chmod +x /home/ubuntu/projets_groupe/update_check.sh
+                        /home/ubuntu/projets_groupe/update_check.sh
 
                         echo "==> Lancement du script de scraping"
                         chmod +x /home/ubuntu/projets_groupe/scraping.sh
