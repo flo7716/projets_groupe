@@ -17,6 +17,7 @@ source "$ENV_LOCATION/activate"
 echo "Execution du script Python de scraping"
 if [ ! -f "$SCRIPT_LOCATION/scraper.py" ]; then
     echo "Erreur: Le script Python de scraping est introuvable."
+    exit 1
 fi
 
 python "$SCRIPT_LOCATION/scraper.py"
