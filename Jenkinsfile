@@ -6,8 +6,8 @@ pipeline {
         password(name: 'AWS_ACCESS_KEY_ID', description: 'AWS Access Key')
         password(name: 'AWS_SECRET_ACCESS_KEY', description: 'AWS Secret Key')
         string(name: 'AWS_REGION', defaultValue: 'eu-west-3', description: 'AWS Region')
-        string(name: 'SETUP_SCRIPT_PATH', defaultValue: '/home/florian-andr/Documents/setup.sh', description: 'Chemin absolu du script setup.sh à copier sur EC2')
-        string(name: 'PEM_KEY_PATH', defaultValue: '/home/florian-andr/.ssh/ipsa.pem', description: 'Chemin absolu de la clé PEM à utiliser pour la connexion SSH')
+        string(name: 'SETUP_SCRIPT_PATH', defaultValue: '/home/florian/Documents/setup.sh', description: 'Chemin absolu du script setup.sh à copier sur EC2')
+        string(name: 'PEM_KEY_PATH', defaultValue: '/home/florian/.ssh/ipsa.pem', description: 'Chemin absolu de la clé PEM à utiliser pour la connexion SSH')
     }
 
     stages {
@@ -23,10 +23,10 @@ pipeline {
                     '''.stripIndent()
 
                     sh """
-                        sudo -u florian-andr ls -l ${params.SETUP_SCRIPT_PATH}
-                        sudo -u florian-andr scp -i ${params.PEM_KEY_PATH} ${params.SETUP_SCRIPT_PATH} ubuntu@${params.NEW_IP}:/home/ubuntu/
-                        sudo -u florian-andr scp -i ${params.PEM_KEY_PATH} remote_commands.sh ubuntu@${params.NEW_IP}:/home/ubuntu/
-                        sudo -u florian-andr ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} 'bash /home/ubuntu/remote_commands.sh'
+                        sudo -u florian ls -l ${params.SETUP_SCRIPT_PATH}
+                        sudo -u florian scp -i ${params.PEM_KEY_PATH} ${params.SETUP_SCRIPT_PATH} ubuntu@${params.NEW_IP}:/home/ubuntu/
+                        sudo -u florian scp -i ${params.PEM_KEY_PATH} remote_commands.sh ubuntu@${params.NEW_IP}:/home/ubuntu/
+                        sudo -u florian ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} 'bash /home/ubuntu/remote_commands.sh'
                     """
                 }
             }
@@ -44,8 +44,8 @@ pipeline {
                     writeFile file: 'env_content.txt', text: envContent
 
                     sh """
-                        sudo -u florian-andr scp -i ${params.PEM_KEY_PATH} env_content.txt ubuntu@${params.NEW_IP}:/home/ubuntu/.env
-                        sudo -u florian-andr ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} '
+                        sudo -u florian scp -i ${params.PEM_KEY_PATH} env_content.txt ubuntu@${params.NEW_IP}:/home/ubuntu/.env
+                        sudo -u florian ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} '
                             mv /home/ubuntu/.env /home/ubuntu/projets_groupe/Projet_federateur_IA/.env &&
                             chmod 600 /home/ubuntu/projets_groupe/Projet_federateur_IA/.env
                         '

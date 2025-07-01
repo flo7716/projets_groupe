@@ -3,7 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'NEW_IP', defaultValue: '', description: 'IP de l’instance EC2')
-        string(name: 'PEM_KEY_PATH', defaultValue: '/home/florian-andr/.ssh/ipsa.pem', description: 'Chemin absolu de la clé PEM à utiliser pour la connexion SSH')
+        string(name: 'PEM_KEY_PATH', defaultValue: '/home/florian/.ssh/ipsa.pem', description: 'Chemin absolu de la clé PEM à utiliser pour la connexion SSH')
     }
 
     stages {
@@ -23,8 +23,8 @@ pipeline {
 
                     // Transfert et exécution du script
                     sh """
-                        sudo -u florian-andr scp -i ${params.PEM_KEY_PATH} run_scripts.sh ubuntu@${params.NEW_IP}:/home/ubuntu/
-                        sudo -u florian-andr ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} 'bash /home/ubuntu/run_scripts.sh'
+                        sudo -u florian scp -i ${params.PEM_KEY_PATH} run_scripts.sh ubuntu@${params.NEW_IP}:/home/ubuntu/
+                        sudo -u florian ssh -i ${params.PEM_KEY_PATH} ubuntu@${params.NEW_IP} 'bash /home/ubuntu/run_scripts.sh'
                     """
                 }
             }
