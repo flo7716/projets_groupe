@@ -3,15 +3,28 @@
 HOME_DIR=/home/$(whoami)
 
 
+## Check if current system is Debian or RedHat based
+if [ -f /etc/debian_version ]; then
+    echo "Debian-based system detected."
+    PKG_MANAGER="apt-get"
+elif [ -f /etc/redhat-release ]; then
+    echo "RedHat-based system detected."
+    PKG_MANAGER="dnf"
+else
+    echo "Unsupported OS. Exiting."
+    exit 1
+
+fi
+
 # Update and upgrade the system
-sudo apt-get update
-sudo apt-get upgrade -y
+sudo $PKG_MANAGER update
+sudo $PKG_MANAGER upgrade -y
 
 # Install Python and pip
-sudo apt-get install -y python3 python3-pip cron
+sudo $PKG_MANAGER install -y python3 python3-pip cron
 
 # Install virtualenv
-sudo apt-get install -y virtualenv
+sudo $PKG_MANAGER install -y virtualenv
 
 # Create a virtual environment
 virtualenv $HOME_DIR/env
@@ -29,7 +42,7 @@ python -m spacy download en_core_web_sm
 deactivate
 
 # Install Git
-sudo apt-get install -y git
+sudo $PKG_MANAGER install -y git
 
 # Clone the repository (if not already cloned)
 cd $HOME_DIR
