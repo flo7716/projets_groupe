@@ -2,11 +2,27 @@
 
 HOME_DIR=/home/$(whoami)
 
-#check for updates
-sudo apt-get update
+## Check if current system is Debian or RedHat based
+if [ -f /etc/debian_version ]; then
+    echo "Debian-based system detected."
+    PKG_MANAGER="apt-get"
+elif [ -f /etc/redhat-release ]; then
+    echo "RedHat-based system detected."
+    PKG_MANAGER="dnf"
+else
+    echo "Unsupported OS. Exiting."
+    exit 1
 
-#install updates if they are found
-sudo apt-get upgrade -y
+fi
+
+#check for updates (and install if any) for Debian based systems
+sudo $PKG_MANAGER update
+
+#install updates if they are found (only for Debian based systems)
+if [ "$PKG_MANAGER" == "apt-get" ]; then
+    sudo $PKG_MANAGER upgrade -y
+fi
+
 
 
 #check for updates into Git repository on this folder
