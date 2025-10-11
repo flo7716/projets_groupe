@@ -16,9 +16,14 @@ else
 
 fi
 
-# Update and upgrade the system
-sudo $PKG_MANAGER update
-sudo $PKG_MANAGER upgrade -y
+# Update and upgrade the system by using respective package manager update commands
+if $PKG_MANAGER == "apt-get"; then
+    sudo $PKG_MANAGER update -y
+    sudo $PKG_MANAGER upgrade -y
+elif $PKG_MANAGER == "dnf"; then
+    sudo $PKG_MANAGER check-update -y
+    sudo $PKG_MANAGER upgrade -y
+fi
 
 # Install Python and pip
 sudo $PKG_MANAGER install -y python3 python3-pip cron
