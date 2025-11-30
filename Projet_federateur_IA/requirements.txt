@@ -3,3 +3,4 @@ beautifulsoup4
 spacy
 boto3
 flask
+werkzeug>=3.1.4 # not directly required, pinned by Snyk to avoid a vulnerability
