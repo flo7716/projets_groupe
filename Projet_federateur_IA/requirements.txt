@@ -3,3 +3,4 @@ beautifulsoup4
 spacy
 boto3
 flask
+urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
